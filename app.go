@@ -3,14 +3,16 @@ package app
 import (
 	"encoding/json"
 
+	"github.com/dgamingfoundation/randapp/util"
+
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/dgamingfoundation/randapp/x/randapp"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/sdk-application-tutorial/x/nameservice"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,16 +23,15 @@ import (
 )
 
 const (
-	appName = "nameservice"
+	appName = "randapp"
 )
 
-type nameServiceApp struct {
+type randApp struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
 	keyMain          *sdk.KVStoreKey
 	keyAccount       *sdk.KVStoreKey
-	keyNS            *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
 	tkeyParams       *sdk.TransientStoreKey
@@ -39,29 +40,44 @@ type nameServiceApp struct {
 	bankKeeper          bank.Keeper
 	feeCollectionKeeper auth.FeeCollectionKeeper
 	paramsKeeper        params.Keeper
-	nsKeeper            nameservice.Keeper
+	nsKeeper            randapp.Keeper
+
+	keyPubKeys            *sdk.KVStoreKey
+	keyDeals              *sdk.KVStoreKey
+	keyResponses          *sdk.KVStoreKey
+	keyJustifications     *sdk.KVStoreKey
+	keyCommits            *sdk.KVStoreKey
+	keyComplaints         *sdk.KVStoreKey
+	keyReconstructCommits *sdk.KVStoreKey
 }
 
-// NewNameServiceApp is a constructor function for nameServiceApp
-func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
+// NewRandApp is a constructor function for randApp.
+func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 
 	// First define the top level codec that will be shared by the different modules
-	cdc := MakeCodec()
+	cdc := util.MakeCodec()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc))
 
 	// Here you initialize your application with the store keys it requires
-	var app = &nameServiceApp{
+	var app = &randApp{
 		BaseApp: bApp,
 		cdc:     cdc,
 
 		keyMain:          sdk.NewKVStoreKey("main"),
 		keyAccount:       sdk.NewKVStoreKey("acc"),
-		keyNS:            sdk.NewKVStoreKey("ns"),
 		keyFeeCollection: sdk.NewKVStoreKey("fee_collection"),
 		keyParams:        sdk.NewKVStoreKey("params"),
 		tkeyParams:       sdk.NewTransientStoreKey("transient_params"),
+
+		keyPubKeys:            sdk.NewKVStoreKey("pub_keys"),
+		keyDeals:              sdk.NewKVStoreKey("deals"),
+		keyResponses:          sdk.NewKVStoreKey("responses"),
+		keyJustifications:     sdk.NewKVStoreKey("justifications"),
+		keyCommits:            sdk.NewKVStoreKey("commits"),
+		keyComplaints:         sdk.NewKVStoreKey("complaints"),
+		keyReconstructCommits: sdk.NewKVStoreKey("reconstruct_commits"),
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
@@ -82,41 +98,52 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 		bank.DefaultCodespace,
 	)
 
-	// The FeeCollectionKeeper collects transaction fees and renders them to the fee distribution module
+	// The FeeCollectionKeeper collects transaction fees and renders them to the fee distribution module.
 	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(cdc, app.keyFeeCollection)
 
-	// The NameserviceKeeper is the Keeper from the module for this tutorial
-	// It handles interactions with the namestore
-	app.nsKeeper = nameservice.NewKeeper(
+	app.nsKeeper = randapp.NewKeeper(
 		app.bankKeeper,
-		app.keyNS,
+		app.keyPubKeys,
+		app.keyDeals,
+		app.keyResponses,
+		app.keyJustifications,
+		app.keyCommits,
+		app.keyComplaints,
+		app.keyReconstructCommits,
 		app.cdc,
 	)
 
-	// The AnteHandler handles signature verification and transaction pre-processing
+	// The AnteHandler handles signature verification and transaction pre-processing.
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper))
 
-	// The app.Router is the main transaction router where each module registers its routes
-	// Register the bank and nameservice routes here
+	// The app.Router is the main transaction router where each module registers its routes.
+	// Register the bank and randapp routes here.
 	app.Router().
 		AddRoute("bank", bank.NewHandler(app.bankKeeper)).
-		AddRoute("nameservice", nameservice.NewHandler(app.nsKeeper))
+		AddRoute("randapp", randapp.NewHandler(app.nsKeeper))
 
-	// The app.QueryRouter is the main query router where each module registers its routes
+	// The app.QueryRouter is the main query router where each module registers its routes.
 	app.QueryRouter().
-		AddRoute("nameservice", nameservice.NewQuerier(app.nsKeeper)).
+		AddRoute("randapp", randapp.NewQuerier(app.nsKeeper)).
 		AddRoute("acc", auth.NewQuerier(app.accountKeeper))
 
-	// The initChainer handles translating the genesis.json file into initial state for the network
+	// The initChainer handles translating the genesis.json file into initial state for the network.
 	app.SetInitChainer(app.initChainer)
 
 	app.MountStores(
 		app.keyMain,
 		app.keyAccount,
-		app.keyNS,
 		app.keyFeeCollection,
 		app.keyParams,
 		app.tkeyParams,
+
+		app.keyPubKeys,
+		app.keyDeals,
+		app.keyResponses,
+		app.keyJustifications,
+		app.keyCommits,
+		app.keyComplaints,
+		app.keyReconstructCommits,
 	)
 
 	err := app.LoadLatestVersion(app.keyMain)
@@ -134,7 +161,7 @@ type GenesisState struct {
 	Accounts []*auth.BaseAccount `json:"accounts"`
 }
 
-func (app *nameServiceApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 
 	genesisState := new(GenesisState)
@@ -155,9 +182,9 @@ func (app *nameServiceApp) initChainer(ctx sdk.Context, req abci.RequestInitChai
 }
 
 // ExportAppStateAndValidators does the things
-func (app *nameServiceApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 	ctx := app.NewContext(true, abci.Header{})
-	accounts := []*auth.BaseAccount{}
+	var accounts []*auth.BaseAccount
 
 	appendAccountsFn := func(acc auth.Account) bool {
 		account := &auth.BaseAccount{
@@ -183,16 +210,4 @@ func (app *nameServiceApp) ExportAppStateAndValidators() (appState json.RawMessa
 	}
 
 	return appState, validators, err
-}
-
-// MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-	auth.RegisterCodec(cdc)
-	bank.RegisterCodec(cdc)
-	nameservice.RegisterCodec(cdc)
-	staking.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	return cdc
 }

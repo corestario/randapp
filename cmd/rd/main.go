@@ -10,29 +10,30 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	gaiaInit "github.com/cosmos/cosmos-sdk/cmd/gaia/init"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-
+	app "github.com/dgamingfoundation/randapp"
+	"github.com/dgamingfoundation/randapp/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	abci "github.com/tendermint/tendermint/abci/types"
+	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-
-	gaiaInit "github.com/cosmos/cosmos-sdk/cmd/gaia/init"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	app "github.com/cosmos/sdk-application-tutorial"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
+	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
+	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
-var DefaultNodeHome = os.ExpandEnv("$HOME/.nsd")
+// DefaultNodeHome sets the folder where the application data and configuration will be stored
+var DefaultNodeHome = os.ExpandEnv("$HOME/.rd")
 
 const (
 	flagOverwrite = "overwrite"
@@ -41,12 +42,12 @@ const (
 func main() {
 	cobra.EnableCommandSorting = false
 
-	cdc := app.MakeCodec()
+	cdc := util.MakeCodec()
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
-		Use:               "nsd",
-		Short:             "nameservice App Daemon (server)",
+		Use:               "rd",
+		Short:             "randapp App Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
@@ -64,13 +65,13 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
-	return app.NewNameServiceApp(logger, db)
+	return app.NewRandApp(logger, db)
 }
 
 func appExporter() server.AppExporter {
 	return func(logger log.Logger, db dbm.DB, _ io.Writer, _ int64, _ bool, _ []string) (
 		json.RawMessage, []tmtypes.GenesisValidator, error) {
-		dapp := app.NewNameServiceApp(logger, db)
+		dapp := app.NewRandApp(logger, db)
 		return dapp.ExportAppStateAndValidators()
 	}
 }
@@ -117,13 +118,13 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			if err = gaiaInit.ExportGenesisFile(genFile, chainID, []tmtypes.GenesisValidator{validator}, appState); err != nil {
+			if err = ExportGenesisFile(genFile, chainID, []tmtypes.GenesisValidator{validator}, appState); err != nil {
 				return err
 			}
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
-			fmt.Printf("Initialized nsd configuration and bootstrapping files in %s...\n", viper.GetString(cli.HomeFlag))
+			fmt.Printf("Initialized rd configuration and bootstrapping files in %s...\n", viper.GetString(cli.HomeFlag))
 			return nil
 		},
 	}
@@ -144,7 +145,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command 
 		Long: strings.TrimSpace(`
 Adds accounts to the genesis file so that you can start a chain with coins in the CLI:
 
-$ nsd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE,1000nametoken
+$ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE,1000nametoken
 `),
 		RunE: func(_ *cobra.Command, args []string) error {
 			addr, err := sdk.AccAddressFromBech32(args[0])
@@ -190,7 +191,7 @@ $ nsd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAK
 				return err
 			}
 
-			return gaiaInit.ExportGenesisFile(genFile, genDoc.ChainID, genDoc.Validators, appStateJSON)
+			return ExportGenesisFile(genFile, genDoc.ChainID, genDoc.Validators, appStateJSON)
 		},
 	}
 	return cmd
@@ -227,4 +228,58 @@ func SimpleAppGenTx(cdc *codec.Codec, pk crypto.PubKey) (
 	}
 
 	return
+}
+
+func ExportGenesisFile(
+	genFile,
+	chainID string,
+	validators []types.GenesisValidator,
+	appState json.RawMessage,
+) error {
+	if err := writeBLSShare(); err != nil {
+		return fmt.Errorf("failed to writeBLSShare: %v", err)
+	}
+
+	genDoc := types.GenesisDoc{
+		ChainID:         chainID,
+		Validators:      validators,
+		AppState:        appState,
+		BLSThreshold:    1,
+		BLSNumShares:    2,
+		BLSMasterPubKey: types.DefaultBLSVerifierMasterPubKey,
+		DKGNumBlocks:    1000,
+	}
+
+	if err := genDoc.ValidateAndComplete(); err != nil {
+		return err
+	}
+
+	return genDoc.SaveAs(genFile)
+}
+
+func writeBLSShare() error {
+	blsShare := &types.BLSShareJSON{
+		Pub:  types.DefaultBLSVerifierPubKey,
+		Priv: types.DefaultBLSVerifierPrivKey,
+	}
+
+	blsKeyFile := "/Users/andrei/.rd/config/bls_key.json"
+	// todo what should we do if bls key not exists.
+	if cmn.FileExists(blsKeyFile) {
+		fmt.Println("Found node key", "path", blsKeyFile)
+	} else {
+		f, err := os.Create(blsKeyFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		err = json.NewEncoder(f).Encode(blsShare)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Generated node key", "path", blsKeyFile)
+	}
+
+	return nil
 }
