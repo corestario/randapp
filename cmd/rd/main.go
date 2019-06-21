@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -263,7 +264,12 @@ func writeBLSShare() error {
 		Priv: types.DefaultBLSVerifierPrivKey,
 	}
 
-	blsKeyFile := "/Users/andrei/.rd/config/bls_key.json"
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	blsKeyFile := usr.HomeDir + "/" + ".rd/config/bls_key.json"
 	// todo what should we do if bls key not exists.
 	if cmn.FileExists(blsKeyFile) {
 		fmt.Println("Found node key", "path", blsKeyFile)

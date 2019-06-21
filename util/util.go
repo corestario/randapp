@@ -7,11 +7,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/dgamingfoundation/randapp/x/randapp"
+	"github.com/tendermint/go-amino"
 )
 
 // MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
+func MakeCodec() *amino.Codec {
+	var cdc = amino.NewCodec()
 	auth.RegisterCodec(cdc)
 	bank.RegisterCodec(cdc)
 	randapp.RegisterCodec(cdc)
