@@ -2,12 +2,11 @@ package randapp
 
 import (
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	appTypes "github.com/dgamingfoundation/randapp/x/randapp/types"
+	"github.com/tendermint/tendermint/types"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
@@ -47,7 +46,7 @@ func NewKeeper(
 	}
 }
 
-func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
+func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData) {
 	if data.Owner.Empty() {
 		return
 	}

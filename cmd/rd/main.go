@@ -3,46 +3,52 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	"github.com/spf13/viper"
+	"github.com/tendermint/go-amino"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/libs/common"
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	gaiaInit "github.com/cosmos/cosmos-sdk/cmd/gaia/init"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	app "github.com/dgamingfoundation/randapp"
-	"github.com/dgamingfoundation/randapp/util"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/common"
+	tx "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
+
+	"github.com/spf13/cobra"
+	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	app "github.com/dgamingfoundation/randapp"
+	xapp "github.com/dgamingfoundation/randapp/x/randapp"
+	appTypes "github.com/dgamingfoundation/randapp/x/randapp/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	dbm "github.com/tendermint/tendermint/libs/db"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-// DefaultNodeHome sets the folder where the application data and configuration will be stored
-var DefaultNodeHome = os.ExpandEnv("$HOME/.rd")
-
 const (
+	storeAcc      = "acc"
+	storeNS       = "randapp"
 	flagOverwrite = "overwrite"
 )
 
 func main() {
 	cobra.EnableCommandSorting = false
 
-	cdc := util.MakeCodec()
+	cdc := appTypes.ModuleCdc
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
@@ -56,16 +62,12 @@ func main() {
 	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
 
 	// prepare and add flags
-	executor := cli.PrepareBaseCmd(rootCmd, "NS", DefaultNodeHome)
+	executor := cli.PrepareBaseCmd(rootCmd, "NS", app.DefaultNodeHome)
 	err := executor.Execute()
 	if err != nil {
 		// handle with #870
 		panic(err)
 	}
-}
-
-func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
-	return app.NewRandApp(logger, db)
 }
 
 func appExporter() server.AppExporter {
@@ -74,6 +76,28 @@ func appExporter() server.AppExporter {
 		dapp := app.NewRandApp(logger, db)
 		return dapp.ExportAppStateAndValidators()
 	}
+}
+
+func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
+	return app.NewRandApp(logger, db)
+}
+
+func exportAppStateAndTMValidators(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string,
+) (json.RawMessage, []tmtypes.GenesisValidator, error) {
+
+	if height != -1 {
+		nsApp := app.NewRandApp(logger, db)
+		err := nsApp.LoadHeight(height)
+		if err != nil {
+			return nil, nil, err
+		}
+		return nsApp.ExportAppStateAndValidators()
+	}
+
+	nsApp := app.NewRandApp(logger, db)
+
+	return nsApp.ExportAppStateAndValidators()
 }
 
 // InitCmd initializes all files for tendermint and application
@@ -91,7 +115,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				chainID = fmt.Sprintf("test-chain-%v", common.RandStr(6))
 			}
 
-			_, pk, err := gaiaInit.InitializeNodeValidatorFiles(config)
+			_, pk, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {
 				return err
 			}
@@ -103,7 +127,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
 
-			genesis := app.GenesisState{
+			genesis := xapp.GenesisState{
 				AuthData: auth.DefaultGenesisState(),
 				BankData: bank.DefaultGenesisState(),
 			}
@@ -129,72 +153,69 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, DefaultNodeHome, "node's home directory")
+	cmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
 	cmd.Flags().String(client.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().BoolP(flagOverwrite, "o", false, "overwrite the genesis.json file")
 
 	return cmd
 }
 
-// AddGenesisAccountCmd allows users to add accounts to the genesis file
-func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "add-genesis-account [address] [coins[,coins]]",
-		Short: "Adds an account to the genesis file",
-		Args:  cobra.ExactArgs(2),
-		Long: strings.TrimSpace(`
-Adds accounts to the genesis file so that you can start a chain with coins in the CLI:
-
-$ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE,1000nametoken
-`),
-		RunE: func(_ *cobra.Command, args []string) error {
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-			coins, err := sdk.ParseCoins(args[1])
-			if err != nil {
-				return err
-			}
-			coins.Sort()
-
-			var genDoc tmtypes.GenesisDoc
-			config := ctx.Config
-			genFile := config.GenesisFile()
-			if !common.FileExists(genFile) {
-				return fmt.Errorf("%s does not exist, run `gaiad init` first", genFile)
-			}
-			genContents, err := ioutil.ReadFile(genFile)
-			if err != nil {
-			}
-
-			if err = cdc.UnmarshalJSON(genContents, &genDoc); err != nil {
-				return err
-			}
-
-			var appState app.GenesisState
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
-				return err
-			}
-
-			for _, stateAcc := range appState.Accounts {
-				if stateAcc.Address.Equals(addr) {
-					return fmt.Errorf("the application state already contains account %v", addr)
-				}
-			}
-
-			acc := auth.NewBaseAccountWithAddress(addr)
-			acc.Coins = coins
-			appState.Accounts = append(appState.Accounts, &acc)
-			appStateJSON, err := cdc.MarshalJSON(appState)
-			if err != nil {
-				return err
-			}
-
-			return ExportGenesisFile(genFile, genDoc.ChainID, genDoc.Validators, appStateJSON)
-		},
+func queryCmd(cdc *amino.Codec) *cobra.Command {
+	queryCmd := &cobra.Command{
+		Use:     "query",
+		Aliases: []string{"q"},
+		Short:   "Querying subcommands",
 	}
-	return cmd
+
+	queryCmd.AddCommand(
+		rpc.ValidatorCommand(cdc),
+		rpc.BlockCommand(),
+		tx.GetQueryCmd(cdc),
+		client.LineBreak,
+		tx.GetAccountCmd(cdc),
+	)
+
+	return queryCmd
+}
+
+func txCmd(cdc *amino.Codec) *cobra.Command {
+	txCmd := &cobra.Command{
+		Use:   "tx",
+		Short: "Transactions subcommands",
+	}
+
+	txCmd.AddCommand(
+		bankcmd.SendTxCmd(cdc),
+		client.LineBreak,
+		tx.GetSignCommand(cdc),
+		tx.GetBroadcastCommand(cdc),
+		client.LineBreak,
+	)
+
+	return txCmd
+}
+
+func initConfig(cmd *cobra.Command) error {
+	home, err := cmd.PersistentFlags().GetString(cli.HomeFlag)
+	if err != nil {
+		return err
+	}
+
+	cfgFile := path.Join(home, "config", "config.toml")
+	if _, err := os.Stat(cfgFile); err == nil {
+		viper.SetConfigFile(cfgFile)
+
+		if err := viper.ReadInConfig(); err != nil {
+			return err
+		}
+	}
+	if err := viper.BindPFlag(client.FlagChainID, cmd.PersistentFlags().Lookup(client.FlagChainID)); err != nil {
+		return err
+	}
+	if err := viper.BindPFlag(cli.EncodingFlag, cmd.PersistentFlags().Lookup(cli.EncodingFlag)); err != nil {
+		return err
+	}
+	return viper.BindPFlag(cli.OutputFlag, cmd.PersistentFlags().Lookup(cli.OutputFlag))
 }
 
 // SimpleAppGenTx returns a simple GenTx command that makes the node a valdiator from the start
@@ -233,20 +254,20 @@ func SimpleAppGenTx(cdc *codec.Codec, pk crypto.PubKey) (
 func ExportGenesisFile(
 	genFile,
 	chainID string,
-	validators []types.GenesisValidator,
+	validators []tmtypes.GenesisValidator,
 	appState json.RawMessage,
 ) error {
 	if err := writeBLSShare(); err != nil {
 		return fmt.Errorf("failed to writeBLSShare: %v", err)
 	}
 
-	genDoc := types.GenesisDoc{
+	genDoc := tmtypes.GenesisDoc{
 		ChainID:         chainID,
 		Validators:      validators,
 		AppState:        appState,
 		BLSThreshold:    1,
 		BLSNumShares:    2,
-		BLSMasterPubKey: types.DefaultBLSVerifierMasterPubKey,
+		BLSMasterPubKey: tmtypes.DefaultBLSVerifierMasterPubKey,
 		DKGNumBlocks:    1000,
 	}
 
@@ -258,9 +279,9 @@ func ExportGenesisFile(
 }
 
 func writeBLSShare() error {
-	blsShare := &types.BLSShareJSON{
-		Pub:  types.DefaultBLSVerifierPubKey,
-		Priv: types.DefaultBLSVerifierPrivKey,
+	blsShare := &tmtypes.BLSShareJSON{
+		Pub:  tmtypes.DefaultBLSVerifierPubKey,
+		Priv: tmtypes.DefaultBLSVerifierPrivKey,
 	}
 
 	blsKeyFile := "/Users/andrei/.rd/config/bls_key.json"
@@ -282,4 +303,64 @@ func writeBLSShare() error {
 	}
 
 	return nil
+}
+
+// AddGenesisAccountCmd allows users to add accounts to the genesis file
+func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add-genesis-account [address] [coins[,coins]]",
+		Short: "Adds an account to the genesis file",
+		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(`
+Adds accounts to the genesis file so that you can start a chain with coins in the CLI:
+$ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE,1000nametoken
+`),
+		RunE: func(_ *cobra.Command, args []string) error {
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			coins, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+			coins.Sort()
+
+			var genDoc tmtypes.GenesisDoc
+			config := ctx.Config
+			genFile := config.GenesisFile()
+			if !common.FileExists(genFile) {
+				return fmt.Errorf("%s does not exist, run `gaiad init` first", genFile)
+			}
+			genContents, err := ioutil.ReadFile(genFile)
+			if err != nil {
+			}
+
+			if err = cdc.UnmarshalJSON(genContents, &genDoc); err != nil {
+				return err
+			}
+
+			var appState xapp.GenesisState
+			if err = cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
+				return err
+			}
+
+			for _, stateAcc := range appState.Accounts {
+				if stateAcc.Address.Equals(addr) {
+					return fmt.Errorf("the application state already contains account %v", addr)
+				}
+			}
+
+			acc := auth.NewBaseAccountWithAddress(addr)
+			acc.Coins = coins
+			appState.Accounts = append(appState.Accounts, &acc)
+			appStateJSON, err := cdc.MarshalJSON(appState)
+			if err != nil {
+				return err
+			}
+
+			return ExportGenesisFile(genFile, genDoc.ChainID, genDoc.Validators, appStateJSON)
+		},
+	}
+	return cmd
 }

@@ -1,21 +1,29 @@
-package app
+package randapp
 
 import (
 	"encoding/json"
-
-	"github.com/dgamingfoundation/randapp/util"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/dgamingfoundation/randapp/x/randapp"
+	"os"
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/dgamingfoundation/randapp/x/randapp"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+
+	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
+
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	app "github.com/dgamingfoundation/randapp/x/randapp"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/dgamingfoundation/randapp/x/randapp/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -24,6 +32,27 @@ import (
 
 const (
 	appName = "randapp"
+)
+
+var (
+	// default home directories for the application CLI
+	DefaultCLIHome = os.ExpandEnv("$HOME/.rcli")
+
+	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
+	DefaultNodeHome = os.ExpandEnv("$HOME/.rd")
+
+	// ModuleBasicManager is in charge of setting up basic module elemnets
+	ModuleBasics = module.NewBasicManager(
+		genaccounts.AppModuleBasic{},
+		genutil.AppModuleBasic{},
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		params.AppModuleBasic{},
+		app.AppModule{},
+		staking.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+	)
 )
 
 type randApp struct {
@@ -49,13 +78,15 @@ type randApp struct {
 	keyCommits            *sdk.KVStoreKey
 	keyComplaints         *sdk.KVStoreKey
 	keyReconstructCommits *sdk.KVStoreKey
+
+	mm *module.Manager
 }
 
 // NewRandApp is a constructor function for randApp.
 func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 
 	// First define the top level codec that will be shared by the different modules
-	cdc := util.MakeCodec()
+	cdc := types.ModuleCdc
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc))
@@ -81,7 +112,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams)
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, sdk.CodespaceRoot)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -114,7 +145,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	)
 
 	// The AnteHandler handles signature verification and transaction pre-processing.
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper))
+	//app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper))
 
 	// The app.Router is the main transaction router where each module registers its routes.
 	// Register the bank and randapp routes here.
@@ -154,17 +185,10 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	return app
 }
 
-// GenesisState represents chain state at the start of the chain. Any initial state (account balances) are stored here.
-type GenesisState struct {
-	AuthData auth.GenesisState   `json:"auth"`
-	BankData bank.GenesisState   `json:"bank"`
-	Accounts []*auth.BaseAccount `json:"accounts"`
-}
-
 func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 
-	genesisState := new(GenesisState)
+	genesisState := new(randapp.GenesisState)
 	err := app.cdc.UnmarshalJSON(stateJSON, genesisState)
 	if err != nil {
 		panic(err)
@@ -179,6 +203,16 @@ func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 	bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
 
 	return abci.ResponseInitChain{}
+}
+
+func (app *randApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	return app.mm.BeginBlock(ctx, req)
+}
+func (app *randApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	return app.mm.EndBlock(ctx, req)
+}
+func (app *randApp) LoadHeight(height int64) error {
+	return app.LoadVersion(height, app.keyMain)
 }
 
 // ExportAppStateAndValidators does the things
@@ -198,7 +232,7 @@ func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, val
 
 	app.accountKeeper.IterateAccounts(ctx, appendAccountsFn)
 
-	genState := GenesisState{
+	genState := randapp.GenesisState{
 		Accounts: accounts,
 		AuthData: auth.DefaultGenesisState(),
 		BankData: bank.DefaultGenesisState(),

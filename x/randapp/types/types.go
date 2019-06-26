@@ -1,4 +1,4 @@
-package randapp
+package types
 
 import (
 	"fmt"

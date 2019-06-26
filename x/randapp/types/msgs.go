@@ -1,4 +1,4 @@
-package randapp
+package types
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+const RouterKey = ModuleName
 
 type MsgSendDKGData struct {
 	Data  *types.DKGData
