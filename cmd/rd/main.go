@@ -50,6 +50,12 @@ const (
 func main() {
 	cobra.EnableCommandSorting = false
 
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(sdk.Bech32PrefixAccAddr, sdk.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
+	config.Seal()
+
 	cdc := app.MakeCodec()
 	ctx := server.NewDefaultContext()
 
@@ -59,15 +65,15 @@ func main() {
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
-	rootCmd.AddCommand(InitCmd(ctx, cdc))
-	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc))
-	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
-
 	rootCmd.AddCommand(
-		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
+		InitCmd(ctx, cdc),
 		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
+		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
+		AddGenesisAccountCmd(ctx, cdc),
 	)
+
+	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "NS", app.DefaultNodeHome)
