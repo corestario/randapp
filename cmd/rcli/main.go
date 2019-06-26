@@ -86,7 +86,7 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 	queryCmd.AddCommand(
 		rpc.ValidatorCommand(cdc),
 		rpc.BlockCommand(),
-		//tx.SearchTxCmd(cdc),
+		authcmd.QueryTxsByTagsCmd(cdc),
 		tx.QueryTxCmd(cdc),
 		client.LineBreak,
 		authcmd.GetAccountCmd(cdc),

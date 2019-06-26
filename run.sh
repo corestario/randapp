@@ -25,7 +25,7 @@ rcli config output json
 rcli config indent true
 rcli config trust-node true
 
-chmod +w ~/.rd/config
+#chmod +w ~/.rd/config
 
 rd gentx --name validator1
 
