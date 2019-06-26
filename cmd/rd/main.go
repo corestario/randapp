@@ -7,8 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/spf13/viper"
 	"github.com/tendermint/go-amino"
 	cfg "github.com/tendermint/tendermint/config"
@@ -31,9 +33,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	app "github.com/dgamingfoundation/randapp"
 	xapp "github.com/dgamingfoundation/randapp/x/randapp"
-	appTypes "github.com/dgamingfoundation/randapp/x/randapp/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -48,7 +50,7 @@ const (
 func main() {
 	cobra.EnableCommandSorting = false
 
-	cdc := appTypes.ModuleCdc
+	cdc := app.MakeCodec()
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
@@ -60,6 +62,12 @@ func main() {
 	rootCmd.AddCommand(InitCmd(ctx, cdc))
 	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc))
 	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
+
+	rootCmd.AddCommand(
+		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
+		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
+		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
+	)
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "NS", app.DefaultNodeHome)
@@ -284,7 +292,7 @@ func writeBLSShare() error {
 		Priv: tmtypes.DefaultBLSVerifierPrivKey,
 	}
 
-	blsKeyFile := "/Users/andrei/.rd/config/bls_key.json"
+	blsKeyFile := "/Users/pr0n00gler/.rd/config/bls_key.json"
 	// todo what should we do if bls key not exists.
 	if cmn.FileExists(blsKeyFile) {
 		fmt.Println("Found node key", "path", blsKeyFile)

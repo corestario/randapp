@@ -245,3 +245,14 @@ func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, val
 
 	return appState, validators, err
 }
+
+// MakeCodec generates the necessary codecs for Amino
+func MakeCodec() *codec.Codec {
+	var cdc = codec.New()
+	auth.RegisterCodec(cdc)
+	bank.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
+	staking.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	return cdc
+}
