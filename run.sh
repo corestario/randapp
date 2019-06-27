@@ -6,7 +6,7 @@ rm $GOPATH/bin/rd
 make install
 
 # Initialize configuration files and genesis file
-rd init --chain-id rchain
+rd init --chain-id rchain validator1
 
 #rcli keys add validator0
 rcli keys add validator1
@@ -15,7 +15,8 @@ rcli keys add validator1
 
 # Add both accounts, with coins to the genesis file
 #rd add-genesis-account $(rcli keys show validator0 -a) 1000nametoken,1000validator0coin
-rd add-genesis-account $(rcli keys show validator1 -a) 1000nametoken,1000validator1coin
+#rd add-genesis-account $(rcli keys show validator1 -a) 1000nametoken,1000validator1coin
+rd add-genesis-account $(rcli keys show validator1 -a) 1000nametoken,100000000stake
 #rd add-genesis-account $(rcli keys show validator2 -a) 1000nametoken,1000validator2coin
 #rd add-genesis-account $(rcli keys show validator3 -a) 1000nametoken,1000validator3coin
 

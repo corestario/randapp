@@ -2,10 +2,11 @@ package randapp
 
 import (
 	"encoding/json"
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/dgamingfoundation/randapp/x/randapp"
-	"os"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -187,22 +188,22 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 
 func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
-
-	genesisState := new(randapp.GenesisState)
-	err := app.cdc.UnmarshalJSON(stateJSON, genesisState)
+	//genesisState := new(randapp.GenesisState)
+	var genesisState map[string]json.RawMessage
+	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, acc := range genesisState.Accounts {
-		acc.AccountNumber = app.accountKeeper.GetNextAccountNumber(ctx)
-		app.accountKeeper.SetAccount(ctx, acc)
-	}
+	//for _, acc := range genesisState.Accounts {
+	//	acc.AccountNumber = app.accountKeeper.GetNextAccountNumber(ctx)
+	//	app.accountKeeper.SetAccount(ctx, acc)
+	//}
 
-	auth.InitGenesis(ctx, app.accountKeeper, app.feeCollectionKeeper, genesisState.AuthData)
-	bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
-
-	return abci.ResponseInitChain{}
+	//auth.InitGenesis(ctx, app.accountKeeper, app.feeCollectionKeeper, genesisState.AuthData)
+	//bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
+	//return abci.ResponseInitChain{}
+	return app.mm.InitGenesis(ctx, genesisState)
 }
 
 func (app *randApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {

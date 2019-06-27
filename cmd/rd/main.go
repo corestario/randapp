@@ -3,6 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"os/user"
+	"path"
+	"path/filepath"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,12 +24,6 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/common"
-	"io"
-	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	tx "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
@@ -32,6 +34,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	genaccscli "github.com/cosmos/cosmos-sdk/x/auth/genaccounts/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	app "github.com/dgamingfoundation/randapp"
@@ -66,10 +69,13 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
-		InitCmd(ctx, cdc),
-		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
+		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
+		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
+		// AddGenesisAccountCmd allows users to add accounts to the genesis file
+		genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
+		InitCmd(ctx, cdc),
 		AddGenesisAccountCmd(ctx, cdc),
 	)
 
@@ -297,8 +303,12 @@ func writeBLSShare() error {
 		Pub:  tmtypes.DefaultBLSVerifierPubKey,
 		Priv: tmtypes.DefaultBLSVerifierPrivKey,
 	}
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
 
-	blsKeyFile := "/Users/pr0n00gler/.rd/config/bls_key.json"
+	blsKeyFile := usr.HomeDir + "/" + ".rd/config/bls_key.json"
 	// todo what should we do if bls key not exists.
 	if cmn.FileExists(blsKeyFile) {
 		fmt.Println("Found node key", "path", blsKeyFile)
