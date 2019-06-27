@@ -88,17 +88,6 @@ func TestM(t *testing.T) {
 	}
 }
 
-func IsEqual(d1, d2 *randapp.DKGData) bool {
-	if d1.Owner.String() != d1.Owner.String() {
-		return false
-	}
-	if d1.String() != d2.String() {
-		return false
-	}
-
-	return true
-}
-
 func NewKeeperMockApp(logger log.Logger, db dbm.DB) *keeperMockApp {
 	cdc := util.MakeCodec()
 
