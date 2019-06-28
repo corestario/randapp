@@ -264,7 +264,7 @@ func SimpleAppGenTx(cdc *codec.Codec, pk crypto.PubKey) (
 
 	validator = tmtypes.GenesisValidator{
 		PubKey: pk,
-		Power:  10,
+		Power:  100,
 	}
 
 	return
