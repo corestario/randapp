@@ -201,14 +201,14 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 
 	// The app.Router is the main transaction router where each module registers its routes.
 	// Register the bank and randapp routes here.
-	app.Router().
-		AddRoute("bank", bank.NewHandler(app.bankKeeper)).
-		AddRoute("randapp", randapp.NewHandler(app.rKeeper))
-
-	// The app.QueryRouter is the main query router where each module registers its routes.
-	app.QueryRouter().
-		AddRoute("randapp", randapp.NewQuerier(app.rKeeper)).
-		AddRoute("acc", auth.NewQuerier(app.accountKeeper))
+	//app.Router().
+	//	AddRoute("bank", bank.NewHandler(app.bankKeeper)).
+	//	AddRoute("randapp", randapp.NewHandler(app.rKeeper))
+	//
+	//// The app.QueryRouter is the main query router where each module registers its routes.
+	//app.QueryRouter().
+	//	AddRoute("randapp", randapp.NewQuerier(app.rKeeper)).
+	//	AddRoute("acc", auth.NewQuerier(app.accountKeeper))
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
@@ -231,6 +231,8 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		randapp.ModuleName,
 		genutil.ModuleName,
 	)
+
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	// The initChainer handles translating the genesis.json file into initial state for the network.
 	app.SetInitChainer(app.initChainer)

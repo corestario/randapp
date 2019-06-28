@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	"io"
 	"io/ioutil"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/spf13/viper"
@@ -34,11 +34,9 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	genaccscli "github.com/cosmos/cosmos-sdk/x/auth/genaccounts/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	app "github.com/dgamingfoundation/randapp"
-	xapp "github.com/dgamingfoundation/randapp/x/randapp"
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -69,14 +67,14 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
+		//genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
-		genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
-		//InitCmd(ctx, cdc),
-		//AddGenesisAccountCmd(ctx, cdc),
+		//genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
+		InitCmd(ctx, cdc, app.ModuleBasics),
+		AddGenesisAccountCmd(ctx, cdc),
 	)
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
@@ -121,12 +119,12 @@ func exportAppStateAndTMValidators(
 }
 
 // InitCmd initializes all files for tendermint and application
-func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
+func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize genesis config, priv-validator file, and p2p-node file",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
 
@@ -140,6 +138,8 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
+			config.Moniker = args[0]
+
 			var appState json.RawMessage
 			genFile := config.GenesisFile()
 
@@ -147,12 +147,12 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
 
-			genesis := xapp.GenesisState{
-				AuthData: auth.DefaultGenesisState(),
-				BankData: bank.DefaultGenesisState(),
-			}
+			//genesis := xapp.GenesisState{
+			//	AuthData: auth.DefaultGenesisState(),
+			//	BankData: bank.DefaultGenesisState(),
+			//}
 
-			appState, err = codec.MarshalJSONIndent(cdc, genesis)
+			appState, err = codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
 			if err != nil {
 				return err
 			}
@@ -364,20 +364,28 @@ $ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE
 				return err
 			}
 
-			var appState xapp.GenesisState
+			//var appState xapp.GenesisState
+			var appState map[string]json.RawMessage
 			if err = cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
 				return err
 			}
 
-			for _, stateAcc := range appState.Accounts {
-				if stateAcc.Address.Equals(addr) {
-					return fmt.Errorf("the application state already contains account %v", addr)
-				}
+			var genesisAccounts genaccounts.GenesisAccounts
+
+			cdc.MustUnmarshalJSON(appState[genaccounts.ModuleName], &genesisAccounts)
+
+			if genesisAccounts.Contains(addr) {
+				return fmt.Errorf("cannot add account at existing address %v", addr)
 			}
 
 			acc := auth.NewBaseAccountWithAddress(addr)
 			acc.Coins = coins
-			appState.Accounts = append(appState.Accounts, &acc)
+			genAcc := genaccounts.NewGenesisAccount(&acc)
+			genesisAccounts = append(genesisAccounts, genAcc)
+
+			genesisStateBz := cdc.MustMarshalJSON(genaccounts.GenesisState(genesisAccounts))
+			appState[genaccounts.ModuleName] = genesisStateBz
+
 			appStateJSON, err := cdc.MarshalJSON(appState)
 			if err != nil {
 				return err
