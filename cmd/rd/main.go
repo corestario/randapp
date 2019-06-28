@@ -75,8 +75,8 @@ func main() {
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
 		genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
-		InitCmd(ctx, cdc),
-		AddGenesisAccountCmd(ctx, cdc),
+		//InitCmd(ctx, cdc),
+		//AddGenesisAccountCmd(ctx, cdc),
 	)
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
