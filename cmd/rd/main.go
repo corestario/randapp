@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -340,36 +339,27 @@ Adds accounts to the genesis file so that you can start a chain with coins in th
 $ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE,1000nametoken
 `),
 		RunE: func(_ *cobra.Command, args []string) error {
+			config := ctx.Config
+			config.SetRoot(viper.GetString(cli.HomeFlag))
+
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
+
 			coins, err := sdk.ParseCoins(args[1])
 			if err != nil {
 				return err
 			}
-			coins.Sort()
 
-			var genDoc tmtypes.GenesisDoc
-			config := ctx.Config
+			// retrieve the app state
 			genFile := config.GenesisFile()
-			if !common.FileExists(genFile) {
-				return fmt.Errorf("%s does not exist, run `gaiad init` first", genFile)
-			}
-			genContents, err := ioutil.ReadFile(genFile)
+			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
 			if err != nil {
-			}
-
-			if err = cdc.UnmarshalJSON(genContents, &genDoc); err != nil {
 				return err
 			}
 
-			//var appState xapp.GenesisState
-			var appState map[string]json.RawMessage
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
-				return err
-			}
-
+			// add genesis account to the app state
 			var genesisAccounts genaccounts.GenesisAccounts
 
 			cdc.MustUnmarshalJSON(appState[genaccounts.ModuleName], &genesisAccounts)
@@ -380,7 +370,9 @@ $ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE
 
 			acc := auth.NewBaseAccountWithAddress(addr)
 			acc.Coins = coins
+
 			genAcc := genaccounts.NewGenesisAccount(&acc)
+
 			genesisAccounts = append(genesisAccounts, genAcc)
 
 			genesisStateBz := cdc.MustMarshalJSON(genaccounts.GenesisState(genesisAccounts))
@@ -390,6 +382,9 @@ $ rd add-genesis-account cosmos1tse7r2fadvlrrgau3pa0ss7cqh55wrv6y9alwh 1000STAKE
 			if err != nil {
 				return err
 			}
+
+			// export app state
+			genDoc.AppState = appStateJSON
 
 			return ExportGenesisFile(genFile, genDoc.ChainID, genDoc.Validators, appStateJSON)
 		},
