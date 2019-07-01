@@ -1,6 +1,7 @@
 package randapp_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -83,7 +84,7 @@ func TestM(t *testing.T) {
 
 		dapp.nsKeeper.AddDKGData(ctx, dkgData)
 		d2 := dapp.nsKeeper.GetDKGData(ctx, key)
-		assert.Equal(t, dkgData.String(), d2[0].String())
+		assert.Equal(t, fmt.Sprintf("%+v", dkgData.Data), fmt.Sprintf("%+v", d2[0]))
 	}
 }
 

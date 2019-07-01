@@ -65,20 +65,20 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData) {
 	store.Set(key, k.cdc.MustMarshalBinaryBare(data))
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*appTypes.DKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types.DKGData {
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
 	}
 
 	var (
-		out      []*appTypes.DKGData
+		out      []*types.DKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
 		var data appTypes.DKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
-		out = append(out, &data)
+		out = append(out, data.Data)
 	}
 
 	return out
