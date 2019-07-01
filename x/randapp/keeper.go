@@ -2,6 +2,7 @@ package randapp
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -64,18 +65,18 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData) {
 	store.Set(key, k.cdc.MustMarshalBinaryBare(data))
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types.DKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*appTypes.DKGData {
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
 	}
 
 	var (
-		out      []*types.DKGData
+		out      []*appTypes.DKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
-		var data types.DKGData
+		var data appTypes.DKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}

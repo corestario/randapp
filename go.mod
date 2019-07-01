@@ -6,8 +6,10 @@ require (
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190616100639-18415eedaf25
 	github.com/etcd-io/bbolt v1.3.3 // indirect
 	github.com/gorilla/mux v1.7.0
+	github.com/magiconair/properties v1.8.0
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/viper v1.4.0
+	github.com/stretchr/testify v1.3.0
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/tendermint v0.31.6
 )
