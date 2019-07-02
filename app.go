@@ -203,7 +203,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	// Register the bank and randapp routes here.
 	//app.Router().
 	//	AddRoute("bank", bank.NewHandler(app.bankKeeper)).
-	//	AddRoute("randapp", randapp.NewHandler(app.rKeeper))
+	//AddRoute("randapp", randapp.NewHandler(app.rKeeper))
 	//
 	//// The app.QueryRouter is the main query router where each module registers its routes.
 	//app.QueryRouter().

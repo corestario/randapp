@@ -48,6 +48,7 @@ func NewKeeper(
 }
 
 func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData) {
+	fmt.Println("ADD DKG DATA!")
 	if data.Owner.Empty() {
 		return
 	}
@@ -57,12 +58,15 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData) {
 		return
 	}
 
-	var key = data.Data.Addr
-	if store.Has(key) {
-		return
+	var bas = data.Data.Addr
+	for i := 0; i < 4; i++ {
+		key := append(bas, byte(i))
+		if !store.Has(key) {
+			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
+			return
+		}
 	}
 
-	store.Set(key, k.cdc.MustMarshalBinaryBare(data))
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types.DKGData {
@@ -80,7 +84,6 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, data.Data)
 	}
-
 	return out
 }
 
