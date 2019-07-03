@@ -12,14 +12,16 @@ import (
 const RouterKey = ModuleName
 
 type MsgSendDKGData struct {
-	Data  *types.DKGData
-	Owner sdk.AccAddress
+	Data            *types.DKGData
+	Owner           sdk.AccAddress
+	ValidatorsCount int
 }
 
-func NewMsgSendDKGData(data *types.DKGData, owner sdk.AccAddress) MsgSendDKGData {
+func NewMsgSendDKGData(data *types.DKGData, owner sdk.AccAddress, validatorsCount int) MsgSendDKGData {
 	return MsgSendDKGData{
-		Data:  data,
-		Owner: owner,
+		Data:            data,
+		Owner:           owner,
+		ValidatorsCount: validatorsCount,
 	}
 }
 
