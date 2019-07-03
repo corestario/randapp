@@ -34,9 +34,13 @@ func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	if err1 != nil {
 		return nil, sdk.ErrUnknownRequest(fmt.Sprintf("invalid data type: %s", path[0]))
 	}
+	roundID, err1 := strconv.Atoi(path[1])
+	if err1 != nil {
+		return nil, sdk.ErrUnknownRequest(fmt.Sprintf("invalid data type: %s", path[1]))
+	}
 
 	var (
-		datas = keeper.GetDKGData(ctx, types.DKGDataType(dataType))
+		datas = keeper.GetDKGData(ctx, types.DKGDataType(dataType), roundID)
 		buf   = bytes.NewBuffer(nil)
 		enc   = gob.NewEncoder(buf)
 	)

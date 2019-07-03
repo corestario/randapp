@@ -8,10 +8,10 @@ make install
 # Initialize configuration files and genesis file
 rd init --chain-id rchain validator0
 
-rcli keys add validator0
-rcli keys add validator1
-rcli keys add validator2
-rcli keys add validator3
+rcli keys add validator0 <<< "12345678"
+rcli keys add validator1 <<< "12345678"
+rcli keys add validator2 <<< "12345678"
+rcli keys add validator3 <<< "12345678"
 
 # Add both accounts, with coins to the genesis file
 #rd add-genesis-account $(rcli keys show validator0 -a) 1000nametoken,1000validator0coin
@@ -38,7 +38,7 @@ cp -r ~/.rcli ~/.rcli3
 
 #chmod +w ~/.rd/config
 
-rd gentx --name validator0
+rd gentx --name validator0 <<< "12345678"
 #rd gentx --name validator1
 #rd gentx --name validator2
 #rd gentx --name validator3
