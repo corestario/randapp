@@ -13,4 +13,5 @@ func init() {
 // RegisterCodec registers concrete types on the Amino codec
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgSendDKGData{}, "randapp/SendDKGData", nil)
+	cdc.RegisterConcrete(MessageStore{}, "randapp/MessageStore", nil)
 }
