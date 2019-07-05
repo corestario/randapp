@@ -2,12 +2,13 @@ package randapp
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	appTypes "github.com/dgamingfoundation/randapp/x/randapp/types"
 	"github.com/tendermint/tendermint/types"
-	"log"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
@@ -47,11 +48,11 @@ func NewKeeper(
 	}
 }
 
-func makeKey(roundID int) []byte {
-	return []byte(makePrefix(roundID))
+func makeKey(roundID uint64, count int) []byte {
+	return []byte(makePrefix(roundID) + fmt.Sprintf("_%d", count))
 }
 
-func makePrefix(roundID int) string {
+func makePrefix(roundID uint64) string {
 	return fmt.Sprintf("round_%d", roundID)
 }
 
@@ -75,25 +76,7 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func createStore(validatorCount int, dataType types.DKGDataType) appTypes.MessageStore {
-	var mStore appTypes.MessageStore
-	switch dataType {
-	case types.DKGPubKey, types.DKGReconstructCommit, types.DKGComplaint, types.DKGCommits, types.DKGDeal:
-		mStore = appTypes.NewMessageStore(1)
-	case types.DKGResponse:
-		mStore = appTypes.NewMessageStore(validatorCount - 1)
-	case types.DKGJustification:
-		p := validatorCount - 1
-		mStore = appTypes.NewMessageStore(p * p)
-	}
-	log.Println("STORE CREATED")
-	return mStore
-}
-
 func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData, validatorCount int) {
-	var (
-		mStore appTypes.MessageStore
-	)
 	if data.Owner.Empty() {
 		return
 	}
@@ -103,20 +86,14 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data appTypes.DKGData, validatorCoun
 		return
 	}
 
-	key := makeKey(data.Data.RoundID)
-
-	mStoreBytes := store.Get(key)
-	if mStoreBytes == nil {
-		mStore = createStore(validatorCount, data.Data.Type)
-	} else {
-		k.cdc.MustUnmarshalBinaryBare(mStoreBytes, &mStore)
+	var bas = data.Data.Addr
+	for i := 0; i <= getMax(validatorCount, data.Data.Type); i++ {
+		key := append(makeKey(data.Data.RoundID, i), bas...)
+		if !store.Has(key) {
+			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
+			return
+		}
 	}
-
-	mStore.Add(data.Owner.String(), k.cdc.MustMarshalBinaryBare(data))
-
-	store.Set(key, k.cdc.MustMarshalBinaryBare(mStore))
-
-	log.Println("ADD DATA:", data.Data.Type)
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType, roundID int) []*types.DKGData {
@@ -126,31 +103,15 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType, roundID 
 	}
 
 	var (
-		out    []*types.DKGData
-		mStore appTypes.MessageStore
-		data   types.DKGData
+		out      []*types.DKGData
+		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
-
-	mStoreBytes := store.Get(makeKey(roundID))
-	if mStoreBytes == nil {
-		log.Println("MessageStore doesn't exist!!!!!!!!!")
-		return out
+	for ; iterator.Valid(); iterator.Next() {
+		var data appTypes.DKGData
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
+		out = append(out, data.Data)
 	}
-	k.cdc.MustUnmarshalBinaryBare(mStoreBytes, &mStore)
-
-	log.Println("GET DATA:", dataType, mStore.GetMessagesCount())
-
-	if mStore.GetMessagesCount() < getMax(4, dataType) {
-		return nil
-	}
-
-	for _, peerMsgs := range mStore.GetAll() {
-		for _, msg := range peerMsgs {
-			k.cdc.MustUnmarshalBinaryBare(msg, &data)
-			out = append(out, &data)
-		}
-	}
-
+	log.Println("GET DATA:", dataType, len(out))
 	return out
 }
 
