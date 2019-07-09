@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  node0:
+    container_name: node0
+    image: "randapp/localnode"
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=randapp.log
+    volumes:
+      - ./build:/rd:Z
+      - ./build/node0:/root/.rd:Z
+    command: start
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.2
+
+  node1:
+    container_name: node1
+    image: "randapp/localnode"
+    ports:
+      - "26658-26659:26656-26657"
+    environment:
+      - ID=1
+      - LOG=randapp.log
+    volumes:
+      - ./build:/rd:Z
+      - ./build/node1:/root/.rd:Z
+    command: start
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.3
+
+  node2:
+    container_name: node2
+    image: "randapp/localnode"
+    ports:
+      - "26660-26661:26656-26657"
+    environment:
+      - ID=2
+      - LOG=randapp.log
+    volumes:
+      - ./build:/rd:Z
+      - ./build/node2:/root/.rd:Z
+    command: start
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.4
+
+  node3:
+    container_name: node3
+    image: "randapp/localnode"
+    ports:
+      - "26662-26663:26656-26657"
+    environment:
+      - ID=3
+      - LOG=randapp.log
+    volumes:
+      - ./build:/rd:Z
+      - ./build/node3:/root/.rd:Z
+    command: start
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.5
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: 192.167.10.0/16
+

@@ -21,6 +21,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	app "github.com/dgamingfoundation/randapp/x/randapp"
 
+	logg "log"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -269,6 +271,46 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 	//genesisState := new(randapp.GenesisState)
+	/*
+			var fs []os.FileInfo
+			fs, _ = ioutil.ReadDir("./")
+			for _, f := range fs {
+				logg.Println(f.Name())
+			}
+			logg.Println()
+			fs, _ = ioutil.ReadDir("/root/")
+			for _, f := range fs {
+				logg.Println(f.Name())
+			}
+			logg.Println()
+			fs, _ = ioutil.ReadDir("/root/.rd")
+			for _, f := range fs {
+				logg.Println(f.Name())
+			}
+			logg.Println()
+			fs, _ = ioutil.ReadDir("/root/.rd/config")
+			for _, f := range fs {
+				logg.Println(f.Name())
+			}
+			logg.Println()
+
+
+			$BINARY init --chain-id SO3Hlq validator${ID}
+			echo 'KEYS ADD'
+			$UNARY keys add validator${ID} <<< '12345678'
+			echo 'ADD-GENESIS'
+			echo $($UNARY keys show validator${ID} -a)
+			echo $HOME
+			$BINARY add-genesis-account $($UNARY keys show validator${ID} -a) 1000nametoken,100000000stake
+			echo 'CONF'
+			$UNARY config chain-id SO3Hlq
+		    $UNARY config output json
+		    $UNARY config indent true
+		    $UNARY config trust-node true
+
+	*/
+	logg.Printf("STATE:\n%#+v\n", stateJSON)
+
 	var genesisState map[string]json.RawMessage
 	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
 	if err != nil {

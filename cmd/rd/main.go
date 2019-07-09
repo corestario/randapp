@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"io"
 	"os"
 	"os/user"
@@ -12,9 +10,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dgamingfoundation/randapp/cmd/testnet"
+
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server"
+	tx "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -23,9 +28,6 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/common"
-
-	"github.com/cosmos/cosmos-sdk/server"
-	tx "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/spf13/cobra"
@@ -66,6 +68,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
+		testnet.TestnetFilesCmd,
 		//genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
@@ -79,7 +82,17 @@ func main() {
 	server.AddCommands(ctx, cdc, rootCmd, newApp, appExporter())
 
 	// prepare and add flags
+
 	executor := cli.PrepareBaseCmd(rootCmd, "NS", app.DefaultNodeHome)
+	/*
+		fs, err := ioutil.ReadDir(os.ExpandEnv("$HOME/.rd/config"))
+		for _, v := range fs {
+			logg.Println(v.Name())
+		}
+		ba, err := ioutil.ReadFile(os.ExpandEnv("$HOME/.rd/config/genesis.json"))
+		logg.Println(string(ba))
+		logg.Println("AAAAAAAAAAAAAAAA", os.ExpandEnv("$HOME/"), os.ExpandEnv("$HOME/.rd/config"))
+	*/
 	err := executor.Execute()
 	if err != nil {
 		// handle with #870
@@ -129,7 +142,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager) *co
 
 			chainID := viper.GetString(client.FlagChainID)
 			if chainID == "" {
-				chainID = fmt.Sprintf("test-chain-%v", common.RandStr(6))
+				chainID = fmt.Sprintf("rchain") //, common.RandStr(6))
 			}
 
 			_, pk, err := genutil.InitializeNodeValidatorFiles(config)
