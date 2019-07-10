@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/dgamingfoundation/randapp/cmd/testnet"
-
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/dgamingfoundation/randapp/cmd/testnet"
+	cfg "github.com/tendermint/tendermint/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -25,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/spf13/viper"
 	"github.com/tendermint/go-amino"
-	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/common"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -84,15 +84,6 @@ func main() {
 	// prepare and add flags
 
 	executor := cli.PrepareBaseCmd(rootCmd, "NS", app.DefaultNodeHome)
-	/*
-		fs, err := ioutil.ReadDir(os.ExpandEnv("$HOME/.rd/config"))
-		for _, v := range fs {
-			logg.Println(v.Name())
-		}
-		ba, err := ioutil.ReadFile(os.ExpandEnv("$HOME/.rd/config/genesis.json"))
-		logg.Println(string(ba))
-		logg.Println("AAAAAAAAAAAAAAAA", os.ExpandEnv("$HOME/"), os.ExpandEnv("$HOME/.rd/config"))
-	*/
 	err := executor.Execute()
 	if err != nil {
 		// handle with #870
@@ -156,29 +147,59 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager) *co
 			genFile := config.GenesisFile()
 
 			if !viper.GetBool(flagOverwrite) && common.FileExists(genFile) {
-				return fmt.Errorf("genesis.json file already exists: %v", genFile)
-			}
+				stateJSON, err := ioutil.ReadFile(os.ExpandEnv("$HOME/.rd") + "/config/genesis.json")
+				if err != nil {
+					return err
+				}
 
+				var genesisState map[string]json.RawMessage
+				err = cdc.UnmarshalJSON(stateJSON, &genesisState)
+				if err != nil {
+					panic(err)
+				}
+				var validators []tmtypes.GenesisValidator
+				val, ok := genesisState["validators"]
+				if !ok {
+					return fmt.Errorf("no validators in genesis file")
+				}
+				err = cdc.UnmarshalJSON(val, &validators)
+				if err != nil {
+					panic(err)
+				}
+				//return fmt.Errorf("genesis.json file already exists: %v", genFile)
+				dg := mbm.DefaultGenesis()
+
+				appState, err = codec.MarshalJSONIndent(cdc, dg)
+				if err != nil {
+					return err
+				}
+
+				if err = ExportGenesisFile(genFile, chainID, validators, appState); err != nil {
+					return err
+				}
+			} else {
+				appState, err = codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
+				if err != nil {
+					return err
+				}
+				_, _, validator, err := SimpleAppGenTx(cdc, pk)
+				if err != nil {
+					return err
+				}
+				if err = ExportGenesisFile(genFile, chainID, []tmtypes.GenesisValidator{validator}, appState); err != nil {
+					return err
+				}
+			}
+			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			//genesis := xapp.GenesisState{
 			//	AuthData: auth.DefaultGenesisState(),
 			//	BankData: bank.DefaultGenesisState(),
 			//}
 
-			appState, err = codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
-			if err != nil {
-				return err
-			}
-
-			_, _, validator, err := SimpleAppGenTx(cdc, pk)
-			if err != nil {
-				return err
-			}
-
-			if err = ExportGenesisFile(genFile, chainID, []tmtypes.GenesisValidator{validator}, appState); err != nil {
-				return err
-			}
-
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+			//appState, err = codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
+			//if err != nil {
+			//	return err
+			//}
 
 			fmt.Printf("Initialized rd configuration and bootstrapping files in %s...\n", viper.GetString(cli.HomeFlag))
 			return nil

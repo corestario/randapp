@@ -54,6 +54,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgamingfoundation/tendermint v0.27.4-0.20190604195457-d66632d1761e h1:TUx/tcIlydjvaFXjvDWHUaIsa8EKZ+Zthm3rXnuVt7M=
 github.com/dgamingfoundation/tendermint v0.27.4-0.20190604195457-d66632d1761e/go.mod h1:TzLluRWe41P6FbedPV6CTp1lO2NXjJfVk9cffJxy/Is=
+github.com/dgamingfoundation/tendermint v0.27.4-0.20190705141749-02ce2138a355 h1:KBacH5+IHi2WR0cUhwUX60/wPU38iYYcUqZlKXpQBpM=
+github.com/dgamingfoundation/tendermint v0.27.4-0.20190705141749-02ce2138a355/go.mod h1:NNmfy1NLHp0nOOQqy7RVTOXZ14cK0Z1W4roisA5Oicg=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/etcd-io/bbolt v1.3.3 h1:gSJmxrs37LgTqR/oyJBWok6k6SvXEUerFTbltIhXkBM=

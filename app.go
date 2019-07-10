@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-
 	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
 
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -20,8 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	app "github.com/dgamingfoundation/randapp/x/randapp"
-
-	logg "log"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -268,63 +265,16 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	return app
 }
 
+type GenesisState map[string]json.RawMessage
+
 func (app *randApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	stateJSON := req.AppStateBytes
-	//genesisState := new(randapp.GenesisState)
-	/*
-			var fs []os.FileInfo
-			fs, _ = ioutil.ReadDir("./")
-			for _, f := range fs {
-				logg.Println(f.Name())
-			}
-			logg.Println()
-			fs, _ = ioutil.ReadDir("/root/")
-			for _, f := range fs {
-				logg.Println(f.Name())
-			}
-			logg.Println()
-			fs, _ = ioutil.ReadDir("/root/.rd")
-			for _, f := range fs {
-				logg.Println(f.Name())
-			}
-			logg.Println()
-			fs, _ = ioutil.ReadDir("/root/.rd/config")
-			for _, f := range fs {
-				logg.Println(f.Name())
-			}
-			logg.Println()
+	var genesisState GenesisState
 
-
-			$BINARY init --chain-id SO3Hlq validator${ID}
-			echo 'KEYS ADD'
-			$UNARY keys add validator${ID} <<< '12345678'
-			echo 'ADD-GENESIS'
-			echo $($UNARY keys show validator${ID} -a)
-			echo $HOME
-			$BINARY add-genesis-account $($UNARY keys show validator${ID} -a) 1000nametoken,100000000stake
-			echo 'CONF'
-			$UNARY config chain-id SO3Hlq
-		    $UNARY config output json
-		    $UNARY config indent true
-		    $UNARY config trust-node true
-
-	*/
-	logg.Printf("STATE:\n%#+v\n", stateJSON)
-
-	var genesisState map[string]json.RawMessage
-	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
+	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
 	if err != nil {
 		panic(err)
 	}
 
-	//for _, acc := range genesisState.Accounts {
-	//	acc.AccountNumber = app.accountKeeper.GetNextAccountNumber(ctx)
-	//	app.accountKeeper.SetAccount(ctx, acc)
-	//}
-
-	//auth.InitGenesis(ctx, app.accountKeeper, app.feeCollectionKeeper, genesisState.AuthData)
-	//bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
-	//return abci.ResponseInitChain{}
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 

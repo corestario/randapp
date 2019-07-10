@@ -33,8 +33,8 @@ export RDHOME="/rd/node${ID}"
 #cat /root/.rd/config/genesis.json
 
 if [ -d "`dirname /root/.rd/config`" ]; then
-	#echo 'PHASE0'
-	#$BINARY init --chain-id rchain validator${ID}
+	echo 'PHASE0'
+	$BINARY init --chain-id rchain validator${ID}
 	#$UNARY keys add validator${ID} <<< "12345678"
 	#$BINARY add-genesis-account $($UNARY keys show validator${ID} -a) 1000nametoken,100000000stake
 
@@ -46,9 +46,9 @@ if [ -d "`dirname /root/.rd/config`" ]; then
 	#echo 'PHASE1!'
 	#$BINARY gentx --name validator${ID} <<< '12345678'
 	#echo 'PHASE2!'
-	#$BINARY collect-gentxs
+	$BINARY collect-gentxs
 	#echo 'PHASE3!'
-	#$BINARY validate-genesis
+	$BINARY validate-genesis
 	ls /root/.rd/config/ -a
 	cat /root/.rd/config/genesis.json
 fi
