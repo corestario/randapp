@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -10,10 +11,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/dgamingfoundation/marketplace/common"
 	"github.com/dgamingfoundation/randapp/x/randapp"
+	"github.com/spf13/viper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
@@ -37,6 +44,12 @@ var (
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		params.AppModuleBasic{},
+		staking.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		supply.AppModuleBasic{},
+
+		randapp.AppModule{},
 	)
 )
 
@@ -67,9 +80,13 @@ type randApp struct {
 	keySlashing *sdk.KVStoreKey
 
 	// Keepers
-	accountKeeper auth.AccountKeeper
-	bankKeeper    bank.Keeper
-	paramsKeeper  params.Keeper
+	accountKeeper  auth.AccountKeeper
+	bankKeeper     bank.Keeper
+	supplyKeeper   supply.Keeper
+	stakingKeeper  staking.Keeper
+	slashingKeeper slashing.Keeper
+	distrKeeper    distr.Keeper
+	paramsKeeper   params.Keeper
 
 	randKeeper *randapp.Keeper
 
@@ -99,10 +116,16 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		BaseApp: bApp,
 		cdc:     cdc,
 
-		keyMain:    sdk.NewKVStoreKey(bam.MainStoreKey),
-		keyAccount: sdk.NewKVStoreKey(auth.StoreKey),
-		keyParams:  sdk.NewKVStoreKey(params.StoreKey),
-		tkeyParams: sdk.NewTransientStoreKey(params.TStoreKey),
+		keyMain:     sdk.NewKVStoreKey(bam.MainStoreKey),
+		keyAccount:  sdk.NewKVStoreKey(auth.StoreKey),
+		keySupply:   sdk.NewKVStoreKey(supply.StoreKey),
+		keyStaking:  sdk.NewKVStoreKey(staking.StoreKey),
+		tkeyStaking: sdk.NewTransientStoreKey(staking.TStoreKey),
+		keyDistr:    sdk.NewKVStoreKey(distr.StoreKey),
+		tkeyDistr:   sdk.NewTransientStoreKey("transient_" + distr.ModuleName),
+		keyParams:   sdk.NewKVStoreKey(params.StoreKey),
+		tkeyParams:  sdk.NewTransientStoreKey(params.TStoreKey),
+		keySlashing: sdk.NewKVStoreKey(slashing.StoreKey),
 
 		keyPubKeys:            sdk.NewKVStoreKey("pub_keys"),
 		keyDeals:              sdk.NewKVStoreKey("deals"),
@@ -114,10 +137,13 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams)
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, params.DefaultCodespace)
 	// Set specific supspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
+	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -135,11 +161,61 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		nil, // TODO: maybe we should do something about those blacklisted addresses.
 	)
 
-	// The FeeCollectionKeeper collects transaction fees and renders them to the fee distribution module.
-	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(cdc, app.keyFeeCollection)
+	maccPerms := map[string][]string{
+		auth.FeeCollectorName: nil,
+		distr.ModuleName:      nil,
 
-	app.nsKeeper = randapp.NewKeeper(
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+	}
+	app.supplyKeeper = supply.NewKeeper(app.cdc, app.keySupply, app.accountKeeper,
+		app.bankKeeper, maccPerms)
+
+	// The staking keeper
+	stakingKeeper := staking.NewKeeper(
+		app.cdc,
+		app.keyStaking,
+		app.tkeyStaking,
+		app.supplyKeeper,
+		stakingSubspace,
+		staking.DefaultCodespace,
+	)
+
+	app.distrKeeper = distr.NewKeeper(
+		app.cdc,
+		app.keyDistr,
+		distrSubspace,
+		&stakingKeeper,
+		app.supplyKeeper,
+		distr.DefaultCodespace,
+		auth.FeeCollectorName,
+		nil, // TODO: maybe we should do something about those blacklisted addresses.
+	)
+
+	app.slashingKeeper = slashing.NewKeeper(
+		app.cdc,
+		app.keySlashing,
+		&stakingKeeper,
+		slashingSubspace,
+		slashing.DefaultCodespace,
+	)
+
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	app.stakingKeeper = *stakingKeeper.SetHooks(
+		staking.NewMultiStakingHooks(
+			app.distrKeeper.Hooks(),
+			app.slashingKeeper.Hooks()),
+	)
+
+	srvCfg := ReadSrvConfig()
+	fmt.Printf("Server Config: \n %+v \n", srvCfg)
+
+	app.randKeeper = randapp.NewKeeper(
 		app.bankKeeper,
+		app.stakingKeeper,
+		app.distrKeeper,
+
 		app.keyPubKeys,
 		app.keyDeals,
 		app.keyResponses,
@@ -148,29 +224,63 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.keyComplaints,
 		app.keyReconstructCommits,
 		app.cdc,
+		srvCfg,
+		common.NewPrometheusMsgMetrics(appName),
 	)
 
-	// The AnteHandler handles signature verification and transaction pre-processing.
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper))
+	app.mm = module.NewManager(
+		genaccounts.NewAppModule(app.accountKeeper),
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		auth.NewAppModule(app.accountKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
-	// The app.Router is the main transaction router where each module registers its routes.
-	// Register the bank and randapp routes here.
-	app.Router().
-		AddRoute("bank", bank.NewHandler(app.bankKeeper)).
-		AddRoute("randapp", randapp.NewHandler(app.nsKeeper))
+		randapp.NewAppModule(app.mpKeeper, app.bankKeeper, app.nftKeeper),
+	)
 
-	// The app.QueryRouter is the main query router where each module registers its routes.
-	app.QueryRouter().
-		AddRoute("randapp", randapp.NewQuerier(app.nsKeeper)).
-		AddRoute("acc", auth.NewQuerier(app.accountKeeper))
+	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
+	app.mm.SetOrderEndBlockers(staking.ModuleName)
 
-	// The initChainer handles translating the genesis.json file into initial state for the network.
-	app.SetInitChainer(app.initChainer)
+	// Sets the order of Genesis - Order matters, genutil is to always come last
+	app.mm.SetOrderInitGenesis(
+		genaccounts.ModuleName,
+		distr.ModuleName,
+		staking.ModuleName,
+		auth.ModuleName,
+		bank.ModuleName,
+		slashing.ModuleName,
+
+		randapp.ModuleName,
+
+		genutil.ModuleName,
+	)
+
+	// register all module routes and module queriers
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+
+	// The initChainer handles translating the genesis.json file into initial state for the network
+	app.SetInitChainer(app.InitChainer)
+	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetEndBlocker(app.EndBlocker)
+
+	// The AnteHandler handles signature verification and transaction pre-processing
+	app.SetAnteHandler(
+		auth.NewAnteHandler(
+			app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer,
+		),
+	)
 
 	app.MountStores(
 		app.keyMain,
 		app.keyAccount,
-		app.keyFeeCollection,
+		app.keySupply,
+		app.keyStaking,
+		app.tkeyStaking,
+		app.keyDistr,
+		app.tkeyDistr,
+		app.keySlashing,
 		app.keyParams,
 		app.tkeyParams,
 
@@ -212,40 +322,47 @@ func (app *randApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) ab
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *randApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	app.mpKeeper.CheckFinishedAuctions(ctx)
+	app.randKeeper.CheckFinishedAuctions(ctx)
 	return app.mm.EndBlock(ctx, req)
 }
 func (app *randApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
 }
 
-// ExportAppStateAndValidators does the things
-func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
-	ctx := app.NewContext(true, abci.Header{})
-	var accounts []*auth.BaseAccount
+//_________________________________________________________
 
-	appendAccountsFn := func(acc auth.Account) bool {
-		account := &auth.BaseAccount{
-			Address: acc.GetAddress(),
-			Coins:   acc.GetCoins(),
-		}
+func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string,
+) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 
-		accounts = append(accounts, account)
-		return false
-	}
+	// as if they could withdraw from the start of the next block
+	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
 
-	app.accountKeeper.IterateAccounts(ctx, appendAccountsFn)
-
-	genState := GenesisState{
-		Accounts: accounts,
-		AuthData: auth.DefaultGenesisState(),
-		BankData: bank.DefaultGenesisState(),
-	}
-
+	genState := app.mm.ExportGenesis(ctx)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return appState, validators, err
+	validators = staking.WriteValidators(ctx, app.stakingKeeper)
+
+	return appState, validators, nil
+}
+
+func ReadSrvConfig() *config.RAServerConfig {
+	var cfg *config.RAPServerConfig
+	vCfg := viper.New()
+	vCfg.SetConfigName("server")
+	vCfg.AddConfigPath(DefaultNodeHome + "/config")
+	err := vCfg.ReadInConfig()
+	if err != nil {
+		fmt.Println("ERROR: server config file not found, error:", err)
+		return config.DefaultRAServerConfig()
+	}
+	fmt.Println(vCfg.GetString("maximum_beneficiary_commission"))
+	err = vCfg.Unmarshal(&cfg)
+	if err != nil {
+		fmt.Println("ERROR: could not unmarshal server config file, error:", err)
+		return config.DefaultRAServerConfig()
+	}
+	return cfg
 }

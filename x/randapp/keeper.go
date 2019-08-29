@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/dgamingfoundation/randapp/common"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
@@ -26,6 +27,10 @@ type Keeper struct {
 
 func NewKeeper(
 	coinKeeper bank.Keeper,
+	stakingKeeper staking.Keeper,
+	distrKeeper distribution.Keeper,
+	storeKey sdk.StoreKey,
+
 	keyPubKeys *sdk.KVStoreKey,
 	keyDeals *sdk.KVStoreKey,
 	keyResponses *sdk.KVStoreKey,
@@ -33,8 +38,12 @@ func NewKeeper(
 	keyCommits *sdk.KVStoreKey,
 	keyComplaints *sdk.KVStoreKey,
 	keyReconstructCommits *sdk.KVStoreKey,
-	cdc *codec.Codec) Keeper {
-	return Keeper{
+
+	cdc *codec.Codec,
+	cfg *config.RAServerConfig,
+	msgMetr *common.MsgMetrics,
+) *Keeper {
+	return &Keeper{
 		coinKeeper:            coinKeeper,
 		keyPubKeys:            keyPubKeys,
 		keyDeals:              keyDeals,
@@ -65,18 +74,18 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
 	store.Set(key, k.cdc.MustMarshalBinaryBare(data))
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types.DKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*DKGData {
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
 	}
 
 	var (
-		out      []*types.DKGData
+		out      []*DKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
-		var data types.DKGData
+		var data DKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}
@@ -84,21 +93,21 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType types.DKGDataType) []*types
 	return out
 }
 
-func (k Keeper) getStore(ctx sdk.Context, dataType types.DKGDataType) (sdk.KVStore, error) {
+func (k Keeper) getStore(ctx sdk.Context, dataType DKGDataType) (sdk.KVStore, error) {
 	switch dataType {
-	case types.DKGPubKey:
+	case DKGPubKey:
 		return ctx.KVStore(k.keyPubKeys), nil
-	case types.DKGDeal:
+	case DKGDeal:
 		return ctx.KVStore(k.keyDeals), nil
-	case types.DKGResponse:
+	case DKGResponse:
 		return ctx.KVStore(k.keyResponses), nil
-	case types.DKGJustification:
+	case DKGJustification:
 		return ctx.KVStore(k.keyJustifications), nil
-	case types.DKGCommits:
+	case DKGCommits:
 		return ctx.KVStore(k.keyCommits), nil
-	case types.DKGComplaint:
+	case DKGComplaint:
 		return ctx.KVStore(k.keyComplaints), nil
-	case types.DKGReconstructCommit:
+	case DKGReconstructCommit:
 		return ctx.KVStore(k.keyReconstructCommits), nil
 	default:
 		return nil, fmt.Errorf("unknown message type: %d", dataType)
