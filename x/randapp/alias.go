@@ -14,4 +14,8 @@ const (
 	DKGCommits           = types.DKGCommits
 	DKGComplaint         = types.DKGComplaint
 	DKGReconstructCommit = types.DKGReconstructCommit
+
+	ModuleName = "randapp"
+	RouterKey  = ModuleName
+	StoreKey   = ModuleName
 )

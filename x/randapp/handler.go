@@ -7,7 +7,7 @@ import (
 )
 
 // NewHandler returns a handler for "randapp" type messages.
-func NewHandler(keeper Keeper) sdk.Handler {
+func NewHandler(keeper *Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case MsgSendDKGData:
@@ -20,7 +20,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 // Handle a message to set name
-func handleMsgSendDKGData(ctx sdk.Context, keeper Keeper, msg MsgSendDKGData) sdk.Result {
+func handleMsgSendDKGData(ctx sdk.Context, keeper *Keeper, msg MsgSendDKGData) sdk.Result {
 	keeper.AddDKGData(ctx, DKGData{Data: msg.Data, Owner: msg.Owner})
 	return sdk.Result{}
 }

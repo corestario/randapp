@@ -18,7 +18,7 @@ const (
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper *Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
 		case QueryDKGData:
@@ -29,7 +29,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
+func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper *Keeper) (res []byte, err sdk.Error) {
 	dataType, err1 := strconv.Atoi(path[0])
 	if err1 != nil {
 		return nil, sdk.ErrUnknownRequest(fmt.Sprintf("invalid data type: %s", path[0]))

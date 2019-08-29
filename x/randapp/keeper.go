@@ -9,12 +9,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/dgamingfoundation/randapp/common"
+	"github.com/dgamingfoundation/randapp/x/randapp/config"
+	pl "github.com/prometheus/common/log"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
 // for the various parts of the state machine.
 type Keeper struct {
-	coinKeeper            bank.Keeper
+	coinKeeper    bank.Keeper
+	stakingKeeper staking.Keeper
+	distrKeeper   distribution.Keeper
+	storeKey      sdk.StoreKey // Unexposed key to access store from sdk.Context
+
 	keyPubKeys            *sdk.KVStoreKey
 	keyDeals              *sdk.KVStoreKey
 	keyResponses          *sdk.KVStoreKey
@@ -22,14 +28,16 @@ type Keeper struct {
 	keyCommits            *sdk.KVStoreKey
 	keyComplaints         *sdk.KVStoreKey
 	keyReconstructCommits *sdk.KVStoreKey
-	cdc                   *codec.Codec // The wire codec for binary encoding/decoding.
+
+	cdc     *codec.Codec // The wire codec for binary encoding/decoding.
+	config  *config.RAServerConfig
+	msgMetr *common.MsgMetrics
 }
 
 func NewKeeper(
 	coinKeeper bank.Keeper,
 	stakingKeeper staking.Keeper,
 	distrKeeper distribution.Keeper,
-	storeKey sdk.StoreKey,
 
 	keyPubKeys *sdk.KVStoreKey,
 	keyDeals *sdk.KVStoreKey,
@@ -45,6 +53,8 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		coinKeeper:            coinKeeper,
+		stakingKeeper:         stakingKeeper,
+		distrKeeper:           distrKeeper,
 		keyPubKeys:            keyPubKeys,
 		keyDeals:              keyDeals,
 		keyResponses:          keyResponses,
@@ -53,7 +63,18 @@ func NewKeeper(
 		keyComplaints:         keyComplaints,
 		keyReconstructCommits: keyReconstructCommits,
 		cdc:                   cdc,
+		config:                cfg,
+		msgMetr:               msgMetr,
 	}
+}
+
+func (k *Keeper) increaseCounter(labels ...string) {
+	counter, err := k.msgMetr.NumMsgs.GetMetricWithLabelValues(labels...)
+	if err != nil {
+		pl.Errorf("get metrics with label values error: %v", err)
+		return
+	}
+	counter.Inc()
 }
 
 func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {

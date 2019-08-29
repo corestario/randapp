@@ -18,8 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/dgamingfoundation/marketplace/common"
+	"github.com/dgamingfoundation/randapp/common"
 	"github.com/dgamingfoundation/randapp/x/randapp"
+	"github.com/dgamingfoundation/randapp/x/randapp/config"
 	"github.com/spf13/viper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -237,7 +238,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
-		randapp.NewAppModule(app.mpKeeper, app.bankKeeper, app.nftKeeper),
+		//		randapp.NewAppModule(app.mpKeeper, app.bankKeeper, app.nftKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
@@ -251,9 +252,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		auth.ModuleName,
 		bank.ModuleName,
 		slashing.ModuleName,
-
 		randapp.ModuleName,
-
 		genutil.ModuleName,
 	)
 
@@ -322,7 +321,6 @@ func (app *randApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) ab
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *randApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	app.randKeeper.CheckFinishedAuctions(ctx)
 	return app.mm.EndBlock(ctx, req)
 }
 func (app *randApp) LoadHeight(height int64) error {
@@ -349,7 +347,7 @@ func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteLis
 }
 
 func ReadSrvConfig() *config.RAServerConfig {
-	var cfg *config.RAPServerConfig
+	var cfg *config.RAServerConfig
 	vCfg := viper.New()
 	vCfg.SetConfigName("server")
 	vCfg.AddConfigPath(DefaultNodeHome + "/config")
