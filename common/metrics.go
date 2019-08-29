@@ -9,26 +9,10 @@ type MsgMetrics struct {
 }
 
 const (
-	PrometheusLabelStatus                    = "status"
-	PrometheusLabelMsgType                   = "msg_type"
-	PrometheusValueReceived                  = "Received"
-	PrometheusValueAccepted                  = "Accepted"
-	PrometheusValueCommon                    = "Common"
-	PrometheusValueMsgMintNFT                = "MsgMintNFT"
-	PrometheusValueMsgBurnNFT                = "MsgBurnNFT"
-	PrometheusValueMsgPutNFTOnMarket         = "MsgPutNFTOnMarket"
-	PrometheusValueMsgBuyNFT                 = "MsgBuyNFT"
-	PrometheusValueMsgTransferNFT            = "MsgTransferNFT"
-	PrometheusValueMsgCreateFungibleToken    = "MsgCreateFungibleToken"
-	PrometheusValueMsgTransferFungibleTokens = "MsgTransferFungibleTokens"
-	PrometheusValueMsgUpdateNFTParams        = "MsgUpdateNFTParams"
-	PrometheusValueMsgBurnFT                 = "MsgBurnFT"
-	PrometheusValueMsgPutNFTOnAuction        = "MsgPutNFTOnAuction"
-	PrometheusValueMsgRemoveNFTFromAuction   = "MsgRemoveNFTFromAuction"
-	PrometheusValueMsgRemoveNFTFromMarket    = "MsgRemoveNFTFromMarket"
-	PrometheusValueMsgFinishAuction          = "MsgFinishAuction"
-	PrometheusValueMsgMakeBidOnAuction       = "MsgMakeBidOnAuction"
-	PrometheusValueMsgBuyoutFromAuction      = "MsgBuyoutFromAuction"
+	PrometheusLabelStatus   = "status"
+	PrometheusLabelMsgType  = "msg_type"
+	PrometheusValueReceived = "Received"
+	PrometheusValueAccepted = "Accepted"
 )
 
 func NewPrometheusMsgMetrics(module string) *MsgMetrics {
