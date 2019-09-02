@@ -6,9 +6,9 @@ rm $GOPATH/bin/rd
 make install
 
 # Initialize configuration files and genesis file
-rd init --chain-id rchain
+rd init node0 --chain-id rchain
 
-rcli keys add validator0
+rcli keys add validator0 <<< "12345678"
 #rcli keys add validator1
 #rcli keys add validator2
 #rcli keys add validator3

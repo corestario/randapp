@@ -33,10 +33,10 @@ const appName = "randapp"
 
 var (
 	// default home directories for the application CLI
-	DefaultCLIHome = os.ExpandEnv("$HOME/.mpcli")
+	DefaultCLIHome = os.ExpandEnv("$HOME/.rcli")
 
 	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
-	DefaultNodeHome = os.ExpandEnv("$HOME/.mpd")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.rd")
 
 	// ModuleBasicManager is in charge of setting up basic module elemnets
 	ModuleBasics = module.NewBasicManager(
@@ -238,7 +238,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
-		//		randapp.NewAppModule(app.mpKeeper, app.bankKeeper, app.nftKeeper),
+		randapp.NewAppModule(app.randKeeper, app.bankKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
@@ -313,7 +313,6 @@ func (app *randApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 	if err != nil {
 		panic(err)
 	}
-
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 

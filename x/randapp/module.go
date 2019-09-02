@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/dgamingfoundation/marketplace/x/marketplace/client/cli"
 	"github.com/dgamingfoundation/marketplace/x/marketplace/client/rest"
 	"github.com/gorilla/mux"
@@ -67,17 +66,15 @@ type AppModule struct {
 	module.AppModuleSimulation
 	AppModuleBasic
 	keeper     *Keeper
-	nftKeeper  *nft.Keeper
 	coinKeeper bank.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k *Keeper, bankKeeper bank.Keeper, nftKeeper *nft.Keeper) AppModule {
+func NewAppModule(k *Keeper, bankKeeper bank.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		coinKeeper:     bankKeeper,
-		nftKeeper:      nftKeeper,
 	}
 }
 
