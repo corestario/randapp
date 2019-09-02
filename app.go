@@ -327,24 +327,36 @@ func (app *randApp) LoadHeight(height int64) error {
 }
 
 //_________________________________________________________
+// ExportAppStateAndValidators does the things
+func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+	ctx := app.NewContext(true, abci.Header{})
+	var accounts []*auth.BaseAccount
 
-func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string,
-) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+	appendAccountsFn := func(acc auth.Account) bool {
+		account := &auth.BaseAccount{
+			Address: acc.GetAddress(),
+			Coins:   acc.GetCoins(),
+		}
 
-	// as if they could withdraw from the start of the next block
-	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
+		accounts = append(accounts, account)
+		return false
+	}
 
-	genState := app.mm.ExportGenesis(ctx)
+	app.accountKeeper.IterateAccounts(ctx, appendAccountsFn)
+
+	genState := randapp.GenesisState{
+		Accounts: accounts,
+		AuthData: auth.DefaultGenesisState(),
+		BankData: bank.DefaultGenesisState(),
+	}
+
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	validators = staking.WriteValidators(ctx, app.stakingKeeper)
-
-	return appState, validators, nil
+	return appState, validators, err
 }
-
 func ReadSrvConfig() *config.RAServerConfig {
 	var cfg *config.RAServerConfig
 	vCfg := viper.New()

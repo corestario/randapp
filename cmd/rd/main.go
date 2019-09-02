@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	l "log"
 	"net/http"
@@ -19,9 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/cli"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 )
@@ -86,64 +83,10 @@ func exportAppStateAndTMValidators(
 		if err != nil {
 			return nil, nil, err
 		}
-		return nsApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+		return nsApp.ExportAppStateAndValidators()
 	}
 
 	nsApp := app.NewRandApp(logger, db)
 
-	return nsApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
-}
-
-func ExportGenesisFile(
-	genFile,
-	chainID string,
-	validators []types.GenesisValidator,
-	appState json.RawMessage,
-) error {
-	if err := writeBLSShare(); err != nil {
-		return fmt.Errorf("failed to writeBLSShare: %v", err)
-	}
-
-	genDoc := types.GenesisDoc{
-		ChainID:         chainID,
-		Validators:      validators,
-		AppState:        appState,
-		BLSThreshold:    1,
-		BLSNumShares:    2,
-		BLSMasterPubKey: types.DefaultBLSVerifierMasterPubKey,
-		DKGNumBlocks:    1000,
-	}
-
-	if err := genDoc.ValidateAndComplete(); err != nil {
-		return err
-	}
-
-	return genDoc.SaveAs(genFile)
-}
-
-func writeBLSShare() error {
-	blsShare := &types.BLSShareJSON{
-		Pub:  types.DefaultBLSVerifierPubKey,
-		Priv: types.DefaultBLSVerifierPrivKey,
-	}
-
-	blsKeyFile := "/home/andrey/.rd/config/bls_key.json"
-	// todo what should we do if bls key not exists.
-	if cmn.FileExists(blsKeyFile) {
-		fmt.Println("Found node key", "path", blsKeyFile)
-	} else {
-		f, err := os.Create(blsKeyFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		err = json.NewEncoder(f).Encode(blsShare)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("Generated node key", "path", blsKeyFile)
-	}
-
-	return nil
+	return nsApp.ExportAppStateAndValidators()
 }
