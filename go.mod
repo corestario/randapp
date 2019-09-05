@@ -4,8 +4,7 @@ go 1.12
 
 require (
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190827131926-5aacf454e1b6
-	github.com/dgamingfoundation/marketplace v0.0.0-20190814151107-16f6fa7827e3
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/dgamingfoundation/marketplace v0.0.0-20190829103843-b5b8e1c556ac
 	github.com/gorilla/mux v1.7.0
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.4.1
