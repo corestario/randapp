@@ -32,12 +32,12 @@ rcli config output json
 rcli config indent true
 rcli config trust-node true
 
-#cp -r ~/.rcli ~/.rcli0
-#cp -r ~/.rcli ~/.rcli1
-#cp -r ~/.rcli ~/.rcli2
-#cp -r ~/.rcli ~/.rcli3
+cp -r ~/.rcli ~/.rcli0
+cp -r ~/.rcli ~/.rcli1
+cp -r ~/.rcli ~/.rcli2
+cp -r ~/.rcli ~/.rcli3
 
-#chmod +w ~/.rd/config
+chmod +w ~/.rd/config
 
 rd gentx --name validator0 <<< "12345678"
 

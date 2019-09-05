@@ -2,6 +2,8 @@ package randapp
 
 import (
 	"fmt"
+	"github.com/tendermint/tendermint/types"
+	"log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,6 +53,8 @@ func NewKeeper(
 	cfg *config.RAServerConfig,
 	msgMetr *common.MsgMetrics,
 ) *Keeper {
+	fmt.Println("THIS IS MAX")
+	printMax()
 	return &Keeper{
 		coinKeeper:            coinKeeper,
 		stakingKeeper:         stakingKeeper,
@@ -77,22 +81,65 @@ func (k *Keeper) increaseCounter(labels ...string) {
 	counter.Inc()
 }
 
+func makeKey(roundID int, count int) []byte {
+	return []byte(makePrefix(roundID) + fmt.Sprintf("_%d", count))
+}
+
+func makePrefix(roundID int) string {
+	return fmt.Sprintf("round_%d", roundID)
+}
+
+func getMax(validatorCount int, dataType types.DKGDataType) int {
+	res := 1
+	switch dataType {
+	case types.DKGPubKey:
+	case types.DKGDeal:
+		res = validatorCount
+	case types.DKGResponse:
+		res = validatorCount - 1
+	case types.DKGJustification:
+		p := validatorCount - 1
+		res = p * p
+	case types.DKGCommits:
+	case types.DKGComplaint:
+	case types.DKGReconstructCommit:
+	default:
+		res = 0
+	}
+	return res * validatorCount
+}
+
+func printMax() {
+	for i := 0; i <= 6; i++ {
+		fmt.Println(i, getMax(4, DKGDataType(i)))
+	}
+}
+
+var c int
+
 func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
+	if data.Data.Type == 1 {
+		fmt.Println("STORE DATA", data.Data.Addr)
+		c++
+	}
 	if data.Owner.Empty() {
 		return
 	}
 
 	store, err := k.getStore(ctx, data.Data.Type)
 	if err != nil {
+		fmt.Println("EMPTY STORE", err.Error())
 		return
 	}
 
-	var key = data.Data.Addr
-	if store.Has(key) {
-		return
+	var bas = data.Data.Addr
+	for i := 0; i <= getMax(4, data.Data.Type); i++ {
+		key := append(makeKey(data.Data.RoundID, i), bas...)
+		if !store.Has(key) {
+			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
+			return
+		}
 	}
-
-	store.Set(key, k.cdc.MustMarshalBinaryBare(data))
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*DKGData {
@@ -110,6 +157,10 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*DKGData {
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}
+
+	log.Println("GET DATA:", dataType, len(out))
+
+	log.Println("DEALS NUMBER ", c)
 
 	return out
 }
