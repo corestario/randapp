@@ -15,4 +15,6 @@ build
 *.iml
 
 go.sum
+nodeArray.txt
+node0_config
 
