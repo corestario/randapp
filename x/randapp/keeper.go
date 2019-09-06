@@ -2,9 +2,6 @@ package randapp
 
 import (
 	"fmt"
-	"github.com/tendermint/tendermint/types"
-	"log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -13,6 +10,7 @@ import (
 	"github.com/dgamingfoundation/randapp/common"
 	"github.com/dgamingfoundation/randapp/x/randapp/config"
 	pl "github.com/prometheus/common/log"
+	"github.com/tendermint/tendermint/types"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
@@ -53,8 +51,6 @@ func NewKeeper(
 	cfg *config.RAServerConfig,
 	msgMetr *common.MsgMetrics,
 ) *Keeper {
-	fmt.Println("THIS IS MAX")
-	printMax()
 	return &Keeper{
 		coinKeeper:            coinKeeper,
 		stakingKeeper:         stakingKeeper,
@@ -109,26 +105,13 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func printMax() {
-	for i := 0; i <= 6; i++ {
-		fmt.Println(i, getMax(4, DKGDataType(i)))
-	}
-}
-
-var c int
-
 func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
-	if data.Data.Type == 1 {
-		fmt.Println("STORE DATA", data.Data.Addr)
-		c++
-	}
 	if data.Owner.Empty() {
 		return
 	}
 
 	store, err := k.getStore(ctx, data.Data.Type)
 	if err != nil {
-		fmt.Println("EMPTY STORE", err.Error())
 		return
 	}
 
@@ -157,10 +140,6 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*DKGData {
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}
-
-	log.Println("GET DATA:", dataType, len(out))
-
-	log.Println("DEALS NUMBER ", c)
 
 	return out
 }
