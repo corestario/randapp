@@ -2,15 +2,16 @@ package randapp
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/dgamingfoundation/dkglib/lib/types"
 	"github.com/dgamingfoundation/randapp/common"
 	"github.com/dgamingfoundation/randapp/x/randapp/config"
 	pl "github.com/prometheus/common/log"
-	"github.com/tendermint/tendermint/types"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods
@@ -105,7 +106,7 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
+func (k Keeper) AddDKGData(ctx sdk.Context, data types.RandDKGData) {
 	if data.Owner.Empty() {
 		return
 	}
@@ -125,18 +126,18 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data DKGData) {
 	}
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*DKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*types.RandDKGData {
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
 	}
 
 	var (
-		out      []*DKGData
+		out      []*types.RandDKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
-		var data DKGData
+		var data types.RandDKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}

@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgamingfoundation/dkglib/lib/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 

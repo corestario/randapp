@@ -52,6 +52,14 @@ var (
 
 		randapp.AppModule{},
 	)
+
+	// account permissions
+	maccPerms = map[string][]string{
+		auth.FeeCollectorName:     nil,
+		distr.ModuleName:          nil,
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+	}
 )
 
 // MakeCodec generates the necessary codecs for Amino
@@ -159,16 +167,9 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.accountKeeper,
 		bankSubspace,
 		bank.DefaultCodespace,
-		nil, // TODO: maybe we should do something about those blacklisted addresses.
+		app.ModuleAccountAddrs(),
 	)
 
-	maccPerms := map[string][]string{
-		auth.FeeCollectorName: nil,
-		distr.ModuleName:      nil,
-
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-	}
 	app.supplyKeeper = supply.NewKeeper(app.cdc, app.keySupply, app.accountKeeper,
 		app.bankKeeper, maccPerms)
 
@@ -326,37 +327,35 @@ func (app *randApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
 }
 
-//_________________________________________________________
-// ExportAppStateAndValidators does the things
-func (app *randApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
-	ctx := app.NewContext(true, abci.Header{})
-	var accounts []*auth.BaseAccount
+func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (appState json.RawMessage,
+	validators []tmtypes.GenesisValidator,
+	err error,
+) {
 
-	appendAccountsFn := func(acc auth.Account) bool {
-		account := &auth.BaseAccount{
-			Address: acc.GetAddress(),
-			Coins:   acc.GetCoins(),
-		}
+	// as if they could withdraw from the start of the next block
+	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
 
-		accounts = append(accounts, account)
-		return false
-	}
-
-	app.accountKeeper.IterateAccounts(ctx, appendAccountsFn)
-
-	genState := randapp.GenesisState{
-		Accounts: accounts,
-		AuthData: auth.DefaultGenesisState(),
-		BankData: bank.DefaultGenesisState(),
-	}
-
+	genState := app.mm.ExportGenesis(ctx)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return appState, validators, err
+	validators = staking.WriteValidators(ctx, app.stakingKeeper)
+
+	return appState, validators, nil
 }
+
+// ModuleAccountAddrs returns all the app's module account addresses.
+func (app *randApp) ModuleAccountAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+	}
+
+	return modAccAddrs
+}
+
 func ReadSrvConfig() *config.RAServerConfig {
 	var cfg *config.RAServerConfig
 	vCfg := viper.New()

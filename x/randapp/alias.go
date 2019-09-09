@@ -1,6 +1,6 @@
 package randapp
 
-import "github.com/tendermint/tendermint/types"
+import "github.com/dgamingfoundation/dkglib/lib/types"
 
 type (
 	DKGDataType = types.DKGDataType

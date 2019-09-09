@@ -16,7 +16,6 @@ mkdir -p $HOME/.rd/config
 
 cp $HOME/tmp/genesis.json $HOME/.rd/config
 cp $HOME/tmp/config.toml $HOME/.rd/config
-cp $HOME/tmp/bls_key.json $HOME/.rd/config
 cp -r $HOME/tmp/keys $HOME/.rcli/
 
 sed -i 's/moniker = "moniker"/moniker = "node-'"$1"'"/' $HOME/.rd/config/config.toml

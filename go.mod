@@ -3,11 +3,9 @@ module github.com/dgamingfoundation/randapp
 go 1.12
 
 require (
-	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190827131926-5aacf454e1b6
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/dgamingfoundation/dkglib v0.0.0-20190909084328-a3c04d30cb70
 	github.com/gorilla/mux v1.7.0
-	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.4.1
 	github.com/spf13/afero v1.2.2 // indirect

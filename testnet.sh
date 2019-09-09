@@ -176,6 +176,7 @@ then
 fi
 
 sed -i "s/seeds = \"\"/seeds = $node0_addr/" ./node0_config/.rd/config/config.toml
+sed -i "s/persistent_peers = \"\"/persistent_peers = $node0_addr/" ./node0_config/.rd/config/config.toml
 
 nodeArray=($node0_id)
 
@@ -188,7 +189,6 @@ do
 
     docker cp ./node0_config/.rd/config/config.toml $nodeN_id:/root/tmp/
     docker cp ./node0_config/.rd/config/genesis.json $nodeN_id:/root/tmp/
-    docker cp ./node0_config/.rd/config/bls_key.json $nodeN_id:/root/tmp/
     docker cp ./node0_config/.rcli/keys $nodeN_id:/root/tmp/
 
     docker start $nodeN_id

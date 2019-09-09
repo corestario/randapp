@@ -45,7 +45,7 @@ func main() {
 	}
 	// CLI commands to initialize the chain
 	rootCmd.AddCommand(
-		InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
@@ -83,10 +83,10 @@ func exportAppStateAndTMValidators(
 		if err != nil {
 			return nil, nil, err
 		}
-		return nsApp.ExportAppStateAndValidators()
+		return nsApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
 
 	nsApp := app.NewRandApp(logger, db)
 
-	return nsApp.ExportAppStateAndValidators()
+	return nsApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
