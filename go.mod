@@ -21,4 +21,4 @@ require (
 
 replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
 
-replace github.com/tendermint/tendermint => github.com/dgamingfoundation/tendermint v0.27.4-0.20190904144504-a6a0f25fa2c3
+replace github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.32.2
