@@ -29,6 +29,7 @@ func NewQuerier(keeper *Keeper) sdk.Querier {
 }
 
 func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper *Keeper) (res []byte, err sdk.Error) {
+	fmt.Println("QUERYDKG:", path[0])
 	dataType, err1 := strconv.Atoi(path[0])
 	if err1 != nil {
 		return nil, sdk.ErrUnknownRequest(fmt.Sprintf("invalid data type: %s", path[0]))
@@ -39,6 +40,7 @@ func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		buf   = bytes.NewBuffer(nil)
 		enc   = gob.NewEncoder(buf)
 	)
+	fmt.Println("QUERYDKGDATA:", len(datas))
 	if err := enc.Encode(datas); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to encode response: %v", err))
 	}

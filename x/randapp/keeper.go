@@ -127,6 +127,8 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data types.RandDKGData) {
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*types.RandDKGData {
+	fmt.Printf("GETDKGDATA: %+v \t", dataType)
+
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
@@ -141,6 +143,8 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*types.RandD
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}
+
+	fmt.Println("DKGLEN = ", len(out))
 
 	return out
 }

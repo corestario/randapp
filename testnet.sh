@@ -157,7 +157,7 @@ sleep 2
 echo "waiting ..."
 done
 
-sleep 10
+sleep 15
 
 docker cp $node0_id:/root/.rd ./node0_config/.rd
 docker cp $node0_id:/root/.rcli ./node0_config/.rcli
@@ -197,7 +197,7 @@ do
 
 done
 
-sleep 5
+sleep 10
 
 echo "${nodeArray[@]}" > nodeArray.txt
 
@@ -207,7 +207,7 @@ echo "${nodeArray[@]}"
 echo "all nodes started"
 echo "run run_clients"
 
-sleep 5
+sleep 10
 
 for ((i=0;i<$node_count;i++));
 do
