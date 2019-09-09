@@ -189,7 +189,7 @@ do
 
     docker cp ./node0_config/.rd/config/config.toml $nodeN_id:/root/tmp/
     docker cp ./node0_config/.rd/config/genesis.json $nodeN_id:/root/tmp/
-    docker cp ./node0_config/.rcli/keys $nodeN_id:/root/tmp/
+    docker cp ./node0_config/.rcli $nodeN_id:/root/tmp/.rcli
 
     docker start $nodeN_id
 
@@ -207,12 +207,12 @@ echo "${nodeArray[@]}"
 echo "all nodes started"
 echo "run run_clients"
 
-sleep 3
+sleep 5
 
 for ((i=0;i<$node_count;i++));
 do
   nodeN_id=${nodeArray[$i]}
-  docker exec -t -d $nodeN_id /bin/bash -c "dkglib"
+  docker exec -t -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log"
 
   echo "node_num: $i, node_id: $nodeN_id"
 done
