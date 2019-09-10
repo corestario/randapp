@@ -16,7 +16,7 @@ for (( i=0; i<$n; i++ ))
 do
     rcli keys add "validator$i" <<< $pwrd
 
-    rd add-genesis-account $(rcli keys show "validator$i" -a) 1000nametoken,100000000stake
+    rd add-genesis-account $(rcli keys show "validator$i" -a) 1000000nametoken,100000000stake
 done
 
 rcli config chain-id rchain

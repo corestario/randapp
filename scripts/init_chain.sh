@@ -2,8 +2,8 @@
 
 randapp_path=/go/src/github.com/dgamingfoundation/randapp
 num=$1
-rm -rf $HOME/.rcli
-rm -rf $HOME/.rd
+rm -rf /root/.rcli
+rm -rf /root/.rd
 
 rd init moniker --chain-id rchain
 
@@ -13,10 +13,10 @@ rcli config indent true
 rcli config trust-node true
 
 mkdir -p $HOME/.rd/config
+rm -rf /root/.rcli
+cp /root/tmp/genesis.json /root/.rd/config
+cp /root/tmp/config.toml /root/.rd/config
+cp -r /root/tmp/.rcli /root/.rcli
+cp -r /root/tmp/.rcli /root/.rcli${num}
 
-cp $HOME/tmp/genesis.json $HOME/.rd/config
-cp $HOME/tmp/config.toml $HOME/.rd/config
-cp -r $HOME/tmp/.rcli $HOME/.rcli
-cp -r $HOME/tmp/.rcli $HOME/.rcli${num}
-
-sed -i 's/moniker = "moniker"/moniker = "node-'"$num"'"/' $HOME/.rd/config/config.toml
+sed -i 's/moniker = "moniker"/moniker = "node-'"$num"'"/' /root/.rd/config/config.toml

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io"
-	l "log"
 	"net/http"
 	"os"
 
@@ -59,7 +58,7 @@ func main() {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		if err := http.ListenAndServe(":9080", nil); err != nil {
-			l.Fatalf("failed to run prometheus: %v", err)
+			//l.Fatalf("failed to run prometheus: %v", err)
 		}
 	}()
 	err := executor.Execute()

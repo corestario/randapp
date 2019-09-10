@@ -83,7 +83,7 @@ fi
 
 if [[ -z $n ]]
 then
-      n=12
+      n=4
 fi
 
 if [[ -z $bots_per_node ]]
@@ -208,11 +208,10 @@ echo "all nodes started"
 echo "run run_clients"
 
 sleep 10
-sleep 10
 
 for ((i=0;i<$node_count;i++));
 do
   nodeN_id=${nodeArray[$i]}
-  docker exec -t $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
+  docker exec -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
   echo "node_num: $i, node_id: $nodeN_id"
 done
