@@ -208,11 +208,11 @@ echo "all nodes started"
 echo "run run_clients"
 
 sleep 10
+sleep 10
 
 for ((i=0;i<$node_count;i++));
 do
   nodeN_id=${nodeArray[$i]}
-  docker exec -t -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log"
-
+  docker exec -t $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
   echo "node_num: $i, node_id: $nodeN_id"
 done
