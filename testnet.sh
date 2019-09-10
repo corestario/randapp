@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cur_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
 while test $# -gt 0; do
   case "$1" in
     -h|--help)
@@ -9,32 +11,13 @@ while test $# -gt 0; do
       echo " "
       echo "options:"
       echo "-h, --help                    show brief help"
-      echo "-s, --share_treshhold=s       specify a share treshhold"
-      echo "-d, --decryption_threshold=d  specify a decryption threshold"
       echo "-n, --maximum_nodes=n         specify maximum node count"
       echo "-c, --node_count=c            specify node count"
       echo "-p, --bots_per_node=p         specify bots per node count"
+      echo "--no_rebuild                  run without rebuilding docker images"
+      echo "--kill                        stop and remove testnet containers"
+      echo "--ruin                        force stop containers 1 and 2 after 5 seconds running dkg"
       exit 0
-      ;;
-    -s|--share_treshhold)
-      shift
-      if test $# -gt 0; then
-        export t1=$1
-      else
-        echo "no share treshhold specified"
-        exit 1
-      fi
-      shift
-      ;;
-    -d|--decryption_threshold)
-      shift
-      if test $# -gt 0; then
-        export t2=$1
-      else
-        echo "no decryption treshhold specified"
-        exit 1
-      fi
-      shift
       ;;
     -p|--bots_per_node)
       shift
@@ -68,6 +51,19 @@ while test $# -gt 0; do
       ;;
     --no_rebuild)
       NOREBUILD=true
+      shift
+      ;;
+    --kill)
+      nodeArray=$(cat nodeArray.txt)
+      docker stop ${nodeArray[@]}
+      docker rm ${nodeArray[@]}
+      rm -rf $cur_path/node0_config
+      rm $cur_path/nodeArray.txt
+      exit 0
+      shift
+      ;;
+    --ruin)
+      FORCERUIN=true
       shift
       ;;
     *)
@@ -113,8 +109,6 @@ echo "node_count: $node_count"
 echo "bots_per_node: $bots_per_node"
 
 sleep 3
-
-cur_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 cd $cur_path
 rm -rf ./vendor
@@ -215,3 +209,10 @@ do
   docker exec -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
   echo "node_num: $i, node_id: $nodeN_id"
 done
+
+if [[ $FORCERUIN ]]
+then
+  sleep 5
+  docker stop ${nodeArray[1]}
+  docker stop ${nodeArray[2]}
+fi
