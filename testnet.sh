@@ -11,25 +11,13 @@ while test $# -gt 0; do
       echo " "
       echo "options:"
       echo "-h, --help                    show brief help"
-      echo "-n, --maximum_nodes=n         specify maximum node count"
-      echo "-c, --node_count=c            specify node count"
-      echo "-p, --bots_per_node=p         specify bots per node count"
+      echo "-n, --node_count=n            specify node count"
       echo "--no_rebuild                  run without rebuilding docker images"
       echo "--kill                        stop and remove testnet containers"
       echo "--ruin                        force stop containers 1 and 2 after 5 seconds running dkg"
       exit 0
       ;;
-    -p|--bots_per_node)
-      shift
-      if test $# -gt 0; then
-        export bots_per_node=$1
-      else
-        echo "no bots_per_node specified"
-        exit 1
-      fi
-      shift
-      ;;
-    -n|--maximum_nodes)
+    -n|--node_count)
       shift
       if test $# -gt 0; then
         export n=$1
@@ -39,24 +27,17 @@ while test $# -gt 0; do
       fi
       shift
       ;;
-    -c|--node_count)
-      shift
-      if test $# -gt 0; then
-        export node_count=$1
-      else
-        echo "no node_count specified"
-        exit 1
-      fi
-      shift
-      ;;
     --no_rebuild)
       NOREBUILD=true
       shift
       ;;
     --kill)
-      nodeArray=$(cat nodeArray.txt)
-      docker stop ${nodeArray[@]}
-      docker rm ${nodeArray[@]}
+      mapfile -d ' ' -t nodeArray < nodeArray.txt
+      for ((i = 0;i < ${#nodeArray[@]}; i++));
+      do
+        docker stop ${nodeArray[$i]}
+        docker rm ${nodeArray[$i]}
+      done
       rm -rf $cur_path/node0_config
       rm $cur_path/nodeArray.txt
       exit 0
@@ -72,41 +53,12 @@ while test $# -gt 0; do
   esac
 done
 
-if [[ -n $bots_per_node ]] && [[ -n $node_count ]]
-then
-      n=$(( $bots_per_node*$node_count ))
-fi
-
 if [[ -z $n ]]
 then
       n=4
 fi
 
-if [[ -z $bots_per_node ]]
-then
-      bots_per_node=1
-      node_count=$n
-fi
-
-
-if [[ -z $node_count ]]
-then
-      node_count=$(($n/$bots_per_node))
-fi
-
-if [[ -z $t2 ]]
-then
-      t2=$(((n*2)/3))
-fi
-
-if [[ -z $t1 ]]
-then
-      t1=$t2
-fi
-
-echo "params: $t1 $t2 $n"
-echo "node_count: $node_count"
-echo "bots_per_node: $bots_per_node"
+echo "node_count: $n"
 
 sleep 3
 
@@ -174,7 +126,7 @@ sed -i "s/persistent_peers = \"\"/persistent_peers = $node0_addr/" ./node0_confi
 
 nodeArray=($node0_id)
 
-for ((i=1;i<$node_count;i++));
+for ((i=1;i<$n;i++));
 do
     nodeN_full_id=$(docker create -t randapp_testnet /bin/bash -c "$RAPATH/scripts/init_chain.sh $i > /root/inch.log && rd start > /root/rd_start.log")
     nodeN_id=${nodeN_full_id:0:12}
@@ -203,7 +155,7 @@ echo "run run_clients"
 
 sleep 10
 
-for ((i=0;i<$node_count;i++));
+for ((i=0;i<$n;i++));
 do
   nodeN_id=${nodeArray[$i]}
   docker exec -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
