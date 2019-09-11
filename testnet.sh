@@ -15,6 +15,9 @@ while test $# -gt 0; do
       echo "--no_rebuild                  run without rebuilding docker images"
       echo "--kill                        stop and remove testnet containers"
       echo "--ruin                        force stop containers 1 and 2 after 5 seconds running dkg"
+      echo "--logs                        save current logs to local ./logs folder"
+      echo "-l, --log n [r|d]             print log from container with number n in console
+                                          r for randapp, d for dkglib logs"
       exit 0
       ;;
     -n|--node_count)
@@ -40,9 +43,49 @@ while test $# -gt 0; do
       done
       rm -rf $cur_path/node0_config
       rm $cur_path/nodeArray.txt
+      rm -rf $cur_path/logs
       exit 0
       shift
       ;;
+    --logs)
+      rm -rf $cur_path/logs
+      mkdir -p $cur_path/logs
+      mapfile -d ' ' -t nodeArray < nodeArray.txt
+      for ((i = 0;i < ${#nodeArray[@]}; i++));
+      do
+        docker exec ${nodeArray[$i]} /bin/bash -c "cat /root/rd_start.log" > $cur_path/logs/rd_start_node${i}.log
+        docker exec ${nodeArray[$i]} /bin/bash -c "cat /root/dkglib.log" > $cur_path/logs/dkglib_node${i}.log
+      done
+      exit 0
+      shift
+      ;;
+    -l|--log)
+      shift
+      if test $# -gt 1; then
+        mapfile -d ' ' -t nodeArray < nodeArray.txt
+        ln=$1
+        if [[ $ln > $((${#nodeArray[@]}-1)) ]]
+        then
+          echo "wrong container number"
+          exit 1
+        fi
+        shift
+        lt=$1
+        case $lt in
+          r|randapp)
+            docker exec ${nodeArray[$ln]} /bin/bash -c "cat /root/rd_start.log"
+            ;;
+          d|dkglib)
+            docker exec ${nodeArray[$ln]} /bin/bash -c "cat /root/dkglib.log"
+            ;;
+        esac
+      else
+        echo "no log target specified"
+        exit 1
+      fi
+      exit 0
+      ;;
+
     --ruin)
       FORCERUIN=true
       shift

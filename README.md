@@ -50,6 +50,8 @@ Flags:
       --no_rebuild                  run without rebuilding docker images"
       --kill                        stop and remove testnet containers; remove additional files"
       --ruin                        force stop containers 1 and 2 after 5 seconds running dkg
+      --logs                        save current logs to local ./logs folder"
+      -l, --log n [r|d]             print log from container with number n in console; r for randapp, d for dkglib logs
 ```
 
 Application logs are stored in docker container in ```/root/``` folder.
@@ -57,18 +59,6 @@ Application logs are stored in docker container in ```/root/``` folder.
 randapp - ```/root/rd_start.log```
 
 dkglib - ```/root/dkglib.log```
-
-To access logs use
-
-```
-docker exec ContainerID /bin/bash -c "cat /root/rd_start.log"
-```
-
-and
-
-```
-docker exec ContainerID /bin/bash -c "cat /root/dkglib.log"
-```
 
 
 # Running a node
