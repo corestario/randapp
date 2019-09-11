@@ -52,6 +52,24 @@ Flags:
       --ruin                        force stop containers 1 and 2 after 5 seconds running dkg
 ```
 
+Application logs are stored in docker container in ```/root/``` folder.
+
+randapp - ```/root/rd_start.log```
+
+dkglib - ```/root/dkglib.log```
+
+To access logs use
+
+```
+docker exec ContainerID /bin/bash -c "cat /root/rd_start.log"
+```
+
+and
+
+```
+docker exec ContainerID /bin/bash -c "cat /root/dkglib.log"
+```
+
 
 # Running a node
 
