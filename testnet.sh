@@ -14,6 +14,7 @@ while test $# -gt 0; do
       echo "-n, --node_count=n            specify node count"
       echo "--no_rebuild                  run without rebuilding docker images"
       echo "--kill                        stop and remove testnet containers"
+      echo "--restart                     removes testnet and starts it without rebuild; equals --kill && --no_rebuild"
       echo "--ruin                        force stop containers 1 and 2 after 5 seconds running dkg"
       echo "--logs                        save current logs to local ./logs folder"
       echo "-l, --log n [r|d]             print log from container with number n in console
@@ -36,6 +37,11 @@ while test $# -gt 0; do
       ;;
     --kill)
       mapfile -d ' ' -t nodeArray < nodeArray.txt
+      # first try to stop and remove all containers at once, as it is faster
+      # if an error occured - stop and remove them one by one
+      (docker stop ${nodeArray[@]} \
+      && docker rm ${nodeArray[@]}) \
+      || \
       for ((i = 0;i < ${#nodeArray[@]}; i++));
       do
         docker stop ${nodeArray[$i]}
@@ -45,7 +51,11 @@ while test $# -gt 0; do
       rm $cur_path/nodeArray.txt
       rm -rf $cur_path/logs
       exit 0
-      shift
+      ;;
+    --restart)
+      $cur_path/$0 --kill
+      $cur_path/$0 --no_rebuild
+      exit 0
       ;;
     --logs)
       rm -rf $cur_path/logs
@@ -91,7 +101,9 @@ while test $# -gt 0; do
       shift
       ;;
     *)
-      break
+      echo "wrong argument:"
+      echo "$1"
+      exit 0
       ;;
   esac
 done
@@ -119,6 +131,7 @@ echo $GOBIN
 if [[ $NOREBUILD ]]
 then
   echo "no rebuild"
+  echo
 else
   make prepare
   GO111MODULE=off
@@ -135,7 +148,7 @@ echo "run node0"
 
 node0_full_id=$(docker run -d randapp_testnet /bin/bash -c "$RAPATH/scripts/init_chain_full.sh $n;
  sed -i 's/timeout_commit = \"5s\"/timeout_commit = \"1s\"/' /root/.rd/config/config.toml;
- rd start > /root/rd_start.log")
+ rd start &> /root/rd_start.log")
 node0_id=${node0_full_id:0:12}
 
 echo "node0: $node0_id"
@@ -146,7 +159,7 @@ sleep 2
 echo "waiting ..."
 done
 
-sleep 15
+sleep 10
 
 docker cp $node0_id:/root/.rd ./node0_config/.rd
 docker cp $node0_id:/root/.rcli ./node0_config/.rcli
@@ -171,7 +184,7 @@ nodeArray=($node0_id)
 
 for ((i=1;i<$n;i++));
 do
-    nodeN_full_id=$(docker create -t randapp_testnet /bin/bash -c "$RAPATH/scripts/init_chain.sh $i > /root/inch.log && rd start > /root/rd_start.log")
+    nodeN_full_id=$(docker create -t randapp_testnet /bin/bash -c "$RAPATH/scripts/init_chain.sh $i > /root/inch.log && rd start &> /root/rd_start.log")
     nodeN_id=${nodeN_full_id:0:12}
 
     nodeArray+=($nodeN_id)
@@ -186,22 +199,24 @@ do
 
 done
 
-sleep 10
+sleep 5
 
 echo "${nodeArray[@]}" > nodeArray.txt
 
 chmod 0777 ./nodeArray.txt
 
 echo "${nodeArray[@]}"
+echo
 echo "all nodes started"
 echo "run run_clients"
+echo
 
-sleep 10
+sleep 8
 
-for ((i=0;i<$n;i++));
+for ((i=0;i<${#nodeArray[@]};i++));
 do
   nodeN_id=${nodeArray[$i]}
-  docker exec -d $nodeN_id /bin/bash -c "dkglib -num=$i > /root/dkglib.log" &
+  docker exec -d $nodeN_id /bin/bash -c "dkglib -num=$i &> /root/dkglib.log" &
   echo "node_num: $i, node_id: $nodeN_id"
 done
 
