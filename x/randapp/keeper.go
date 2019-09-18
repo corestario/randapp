@@ -88,15 +88,15 @@ func makePrefix(roundID int) string {
 
 func getMax(validatorCount int, dataType types.DKGDataType) int {
 	res := 1
+	vc := validatorCount - 1
 	switch dataType {
 	case types.DKGPubKey:
 	case types.DKGDeal:
-		res = validatorCount
+		res = vc
 	case types.DKGResponse:
-		res = validatorCount - 1
+		res = vc
 	case types.DKGJustification:
-		p := validatorCount - 1
-		res = p * p
+		res = vc * vc
 	case types.DKGCommits:
 	case types.DKGComplaint:
 	case types.DKGReconstructCommit:
@@ -117,7 +117,7 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data types.RandDKGData) {
 	}
 
 	var bas = data.Data.Addr
-	for i := 0; i <= getMax(4, data.Data.Type); i++ {
+	for i := 0; i < getMax(4, data.Data.Type); i++ {
 		key := append(makeKey(data.Data.RoundID, i), bas...)
 		if !store.Has(key) {
 			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
