@@ -47,10 +47,11 @@ Flags:
 ```
       -h, --help                    show brief help
       -n, --node_count=n            specify node count
-      --no_rebuild                  run without rebuilding docker images"
-      --kill                        stop and remove testnet containers; remove additional files"
+      --no_rebuild                  run without rebuilding docker images
+      --kill                        stop and remove testnet containers; remove additional files
+      --restart                     removes testnet and starts it without rebuild; equals --kill && --no_rebuild
       --ruin                        force stop containers 1 and 2 after 5 seconds running dkg
-      --logs                        save current logs to local ./logs folder"
+      --logs                        save current logs to local ./logs folder
       -l, --log n [r|d]             print log from container with number n in console; r for randapp, d for dkglib logs
 ```
 
