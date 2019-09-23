@@ -226,9 +226,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.keyComplaints,
 		app.keyReconstructCommits,
 		app.cdc,
-		srvCfg,
-		common.NewPrometheusMsgMetrics(appName),
-	)
+	).WithConfig(srvCfg).WithMetrics(common.NewPrometheusMsgMetrics(appName))
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),

@@ -49,8 +49,6 @@ func NewKeeper(
 	keyReconstructCommits *sdk.KVStoreKey,
 
 	cdc *codec.Codec,
-	cfg *config.RAServerConfig,
-	msgMetr *common.MsgMetrics,
 ) *Keeper {
 	return &Keeper{
 		coinKeeper:            coinKeeper,
@@ -64,12 +62,23 @@ func NewKeeper(
 		keyComplaints:         keyComplaints,
 		keyReconstructCommits: keyReconstructCommits,
 		cdc:                   cdc,
-		config:                cfg,
-		msgMetr:               msgMetr,
 	}
 }
 
+func (k *Keeper) WithConfig(cfg *config.RAServerConfig) *Keeper {
+	k.config = cfg
+	return k
+}
+
+func (k *Keeper) WithMetrics(msgMetr *common.MsgMetrics) *Keeper {
+	k.msgMetr = msgMetr
+	return k
+}
+
 func (k *Keeper) increaseCounter(labels ...string) {
+	if k.msgMetr == nil {
+		return
+	}
 	counter, err := k.msgMetr.NumMsgs.GetMetricWithLabelValues(labels...)
 	if err != nil {
 		pl.Errorf("get metrics with label values error: %v", err)
