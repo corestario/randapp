@@ -83,10 +83,10 @@ while test $# -gt 0; do
         lt=$1
         case $lt in
           r|randapp)
-            docker exec ${nodeArray[$ln]} /bin/bash -c "cat /root/rd_start.log"
+            docker exec ${nodeArray[$ln]} /bin/bash -c "tail -f /root/rd_start.log"
             ;;
           d|dkglib)
-            docker exec ${nodeArray[$ln]} /bin/bash -c "cat /root/dkglib.log"
+            docker exec ${nodeArray[$ln]} /bin/bash -c "tail -f /root/dkglib.log"
             ;;
         esac
       else
