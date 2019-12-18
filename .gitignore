@@ -13,3 +13,8 @@ build
 # IDE
 .idea/
 *.iml
+
+nodeArray.txt
+node0_config
+
+*.log

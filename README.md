@@ -20,6 +20,48 @@ which allows us to slash a validator that refuses to participate in a DKG round.
 More about DKG and lib, which implements corresponding algorithm 
 see [dkglib](https://github.com/dgamingfoundation/dkglib).
 
+# Running a local-testnet
+
+#### Ensure that you have docker!
+#### Ensure that dkglib folder is next to your randapp folder!
+##### It is necessary for building docker images and starting testnet! 
+
+Example:
+
+/ home
+
+**/ projects
+
+****/ randapp
+
+****/ dkglib 
+ 
+
+Run from randapp folder:
+```bash
+./testnet.sh
+```
+You might need to run it as superuser.
+
+Flags:
+```
+      -h, --help                    show brief help
+      -n, --node_count=n            specify node count
+      --no_rebuild                  run without rebuilding docker images
+      --kill                        stop and remove testnet containers; remove additional files
+      --restart                     removes testnet and starts it without rebuild; equals --kill && --no_rebuild
+      --ruin                        force stop containers 1 and 2 after 5 seconds running dkg
+      --logs                        save current logs to local ./logs folder
+      -l, --log n [r|d]             print log from container with number n in console; r for randapp, d for dkglib logs
+```
+
+Application logs are stored in docker container in ```/root/``` folder.
+
+randapp - ```/root/rd_start.log```
+
+dkglib - ```/root/dkglib.log```
+
+
 # Running a node
 
 To build and run a node with a script:
