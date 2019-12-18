@@ -3,14 +3,14 @@ package randapp
 import (
 	"fmt"
 
+	"github.com/corestario/randapp/common"
+	"github.com/corestario/randapp/x/randapp/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/dgamingfoundation/dkglib/lib/types"
-	"github.com/dgamingfoundation/randapp/common"
-	"github.com/dgamingfoundation/randapp/x/randapp/config"
 	pl "github.com/prometheus/common/log"
 )
 

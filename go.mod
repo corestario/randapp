@@ -1,4 +1,4 @@
-module github.com/dgamingfoundation/randapp
+module github.com/corestario/randapp
 
 go 1.12
 
