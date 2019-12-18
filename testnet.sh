@@ -142,7 +142,7 @@ else
   docker build -t randapp_testnet .
 fi
 
-RAPATH=/go/src/github.com/dgamingfoundation/randapp
+RAPATH=/go/src/github.com/corestario/randapp
 
 echo "run node0"
 

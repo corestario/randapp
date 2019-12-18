@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-randapp_path=/go/src/github.com/dgamingfoundation/randapp
+randapp_path=/go/src/github.com/corestario/randapp
 num=$1
 rm -rf /root/.rcli
 rm -rf /root/.rd
