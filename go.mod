@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190827131926-5aacf454e1b6
-	github.com/dgamingfoundation/dkglib v0.0.0-20190909093522-ff60eeeae815
+	github.com/corestario/dkglib v0.0.0-20190909093522-ff60eeeae815
 	github.com/gorilla/mux v1.7.0
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.4.1
