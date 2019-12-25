@@ -3,7 +3,6 @@ package randapp
 import (
 	"fmt"
 
-	"github.com/corestario/dkglib/lib/types"
 	"github.com/corestario/randapp/common"
 	"github.com/corestario/randapp/x/randapp/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	types "github.com/dgamingfoundation/dkglib/lib/alias"
+	msgs "github.com/dgamingfoundation/dkglib/lib/msgs"
 	pl "github.com/prometheus/common/log"
 )
 
@@ -106,7 +107,7 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func (k Keeper) AddDKGData(ctx sdk.Context, data types.RandDKGData) {
+func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.RandDKGData) {
 	if data.Owner.Empty() {
 		return
 	}
@@ -126,7 +127,7 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data types.RandDKGData) {
 	}
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*types.RandDKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.RandDKGData {
 	fmt.Printf("GETDKGDATA: %+v \t", dataType)
 
 	store, err := k.getStore(ctx, dataType)
@@ -135,11 +136,11 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*types.RandD
 	}
 
 	var (
-		out      []*types.RandDKGData
+		out      []*msgs.RandDKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
-		var data types.RandDKGData
+		var data msgs.RandDKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}

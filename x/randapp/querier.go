@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/corestario/dkglib/lib/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	msgs "github.com/dgamingfoundation/dkglib/lib/alias"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -36,7 +36,7 @@ func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	}
 
 	var (
-		datas = keeper.GetDKGData(ctx, types.DKGDataType(dataType))
+		datas = keeper.GetDKGData(ctx, msgs.DKGDataType(dataType))
 		buf   = bytes.NewBuffer(nil)
 		enc   = gob.NewEncoder(buf)
 	)

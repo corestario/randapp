@@ -1,6 +1,8 @@
 package randapp
 
-import "github.com/corestario/dkglib/lib/types"
+import (
+	types "github.com/dgamingfoundation/dkglib/lib/alias"
+)
 
 type (
 	DKGDataType = types.DKGDataType

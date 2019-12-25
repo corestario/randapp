@@ -3,15 +3,15 @@ package randapp
 import (
 	"fmt"
 
-	"github.com/corestario/dkglib/lib/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	msgs "github.com/dgamingfoundation/dkglib/lib/msgs"
 )
 
 // NewHandler returns a handler for "randapp" type messages.
 func NewHandler(keeper *Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
-		case types.MsgSendDKGData:
+		case msgs.MsgSendDKGData:
 			return handleMsgSendDKGData(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("Unrecognized randapp Msg type: %v", msg.Type())
@@ -21,7 +21,7 @@ func NewHandler(keeper *Keeper) sdk.Handler {
 }
 
 // Handle a message to set name
-func handleMsgSendDKGData(ctx sdk.Context, keeper *Keeper, msg types.MsgSendDKGData) sdk.Result {
-	keeper.AddDKGData(ctx, types.RandDKGData{Data: msg.Data, Owner: msg.Owner})
+func handleMsgSendDKGData(ctx sdk.Context, keeper *Keeper, msg msgs.MsgSendDKGData) sdk.Result {
+	keeper.AddDKGData(ctx, msgs.RandDKGData{Data: msg.Data, Owner: msg.Owner})
 	return sdk.Result{}
 }
