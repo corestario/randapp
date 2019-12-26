@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	msgs "github.com/corestario/dkglib/lib/alias"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	msgs "github.com/dgamingfoundation/dkglib/lib/alias"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 

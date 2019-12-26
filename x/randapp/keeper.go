@@ -3,6 +3,8 @@ package randapp
 import (
 	"fmt"
 
+	types "github.com/corestario/dkglib/lib/alias"
+	msgs "github.com/corestario/dkglib/lib/msgs"
 	"github.com/corestario/randapp/common"
 	"github.com/corestario/randapp/x/randapp/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	types "github.com/dgamingfoundation/dkglib/lib/alias"
-	msgs "github.com/dgamingfoundation/dkglib/lib/msgs"
 	pl "github.com/prometheus/common/log"
 )
 

@@ -1,7 +1,7 @@
 package randapp
 
 import (
-	types "github.com/dgamingfoundation/dkglib/lib/alias"
+	types "github.com/corestario/dkglib/lib/alias"
 )
 
 type (

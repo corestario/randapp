@@ -3,8 +3,8 @@ package randapp
 import (
 	"fmt"
 
+	msgs "github.com/corestario/dkglib/lib/msgs"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	msgs "github.com/dgamingfoundation/dkglib/lib/msgs"
 )
 
 // NewHandler returns a handler for "randapp" type messages.
