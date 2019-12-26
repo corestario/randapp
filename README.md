@@ -9,16 +9,16 @@ More about [cosmos-sdk](https://github.com/cosmos/cosmos-sdk).
 
 Notable source code files to check out about DKG:
 
-1. https://github.com/dgamingfoundation/tendermint/blob/dcr-random/types/random.go
-2. https://github.com/dgamingfoundation/tendermint/blob/dcr-random/consensus/dkg.go
-3. https://github.com/dgamingfoundation/tendermint/blob/dcr-random/consensus/dkg_dealer.go
+1. https://github.com/corestario/tendermint/blob/dcr-random/types/random.go
+2. https://github.com/corestario/tendermint/blob/dcr-random/consensus/dkg.go
+3. https://github.com/corestario/tendermint/blob/dcr-random/consensus/dkg_dealer.go
 
 
 On-chain DKG works the same way as the off-chain version but writes its messages to blocks, 
 which allows us to slash a validator that refuses to participate in a DKG round.
 
 More about DKG and lib, which implements corresponding algorithm 
-see [dkglib](https://github.com/dgamingfoundation/dkglib).
+see [dkglib](https://github.com/corestario/dkglib).
 
 # Running a local-testnet
 

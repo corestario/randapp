@@ -1,8 +1,8 @@
 package randapp
 
 import (
+	"github.com/corestario/dkglib/lib/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/dgamingfoundation/dkglib/lib/types"
 )
 
 var ModuleCdc = codec.New()
