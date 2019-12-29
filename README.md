@@ -1,6 +1,6 @@
-# DGaming RandApp
+# CoreStarIO RandApp
 
-DGaming RandApp is Cosmos-based SDK, designed for easier building blockchain 
+CoreStarIO RandApp is Cosmos-based SDK, designed for easier building blockchain 
 applications using on-chain DKG algorithm in Golang.
 
 

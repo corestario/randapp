@@ -1,7 +1,7 @@
 package randapp
 
 import (
-	"github.com/corestario/dkglib/lib/types"
+	types "github.com/corestario/dkglib/lib/msgs"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
