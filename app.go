@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
@@ -40,7 +39,6 @@ var (
 
 	// ModuleBasicManager is in charge of setting up basic module elemnets
 	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -146,7 +144,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams)
 	// Set specific supspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
@@ -166,7 +164,6 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
-		bank.DefaultCodespace,
 		app.ModuleAccountAddrs(),
 	)
 
@@ -174,13 +171,12 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.bankKeeper, maccPerms)
 
 	// The staking keeper
+	// The staking keeper
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
 		app.keyStaking,
-		app.tkeyStaking,
 		app.supplyKeeper,
 		stakingSubspace,
-		staking.DefaultCodespace,
 	)
 
 	app.distrKeeper = distr.NewKeeper(
@@ -189,9 +185,8 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		distrSubspace,
 		&stakingKeeper,
 		app.supplyKeeper,
-		distr.DefaultCodespace,
 		auth.FeeCollectorName,
-		nil, // TODO: maybe we should do something about those blacklisted addresses.
+		nil,
 	)
 
 	app.slashingKeeper = slashing.NewKeeper(
@@ -199,7 +194,6 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.keySlashing,
 		&stakingKeeper,
 		slashingSubspace,
-		slashing.DefaultCodespace,
 	)
 
 	// register the staking hooks
@@ -231,12 +225,11 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	)
 
 	app.mm = module.NewManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
 		randapp.NewAppModule(app.randKeeper, app.bankKeeper),
@@ -247,13 +240,14 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	app.mm.SetOrderInitGenesis(
-		genaccounts.ModuleName,
 		distr.ModuleName,
 		staking.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
 		slashing.ModuleName,
+
 		randapp.ModuleName,
+
 		genutil.ModuleName,
 	)
 
