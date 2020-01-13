@@ -24,8 +24,6 @@ const (
 	storeAcc = "acc"
 )
 
-var defaultCLIHome = os.ExpandEnv("$HOME/.rcli")
-
 func main() {
 	cobra.EnableCommandSorting = false
 
@@ -52,7 +50,7 @@ func main() {
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		client.ConfigCmd(defaultCLIHome),
+		client.ConfigCmd(app.DefaultCLIHome),
 		queryCmd(cdc),
 		txCmd(cdc),
 		flags.LineBreak,
@@ -62,7 +60,7 @@ func main() {
 		flags.LineBreak,
 	)
 
-	executor := cli.PrepareMainCmd(rootCmd, "randapp", defaultCLIHome)
+	executor := cli.PrepareMainCmd(rootCmd, "randapp", app.DefaultCLIHome)
 	err := executor.Execute()
 	if err != nil {
 		panic(err)

@@ -25,3 +25,5 @@ replace github.com/corestario/dkglib => ./../dkglib
 replace github.com/corestario/cosmos-utils/client => ./../cosmos-utils/client
 
 replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
+
+replace github.com/corestario/randapp => ./
