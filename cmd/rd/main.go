@@ -30,6 +30,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
+const flagClientHome = "home-client"
+
 func main() {
 	cobra.EnableCommandSorting = false
 
@@ -49,7 +51,7 @@ func main() {
 	}
 	// CLI commands to initialize the chain
 	rootCmd.AddCommand(
-		InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{}, auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
