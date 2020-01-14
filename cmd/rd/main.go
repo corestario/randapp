@@ -30,8 +30,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-const flagClientHome = "home-client"
-
 func main() {
 	cobra.EnableCommandSorting = false
 

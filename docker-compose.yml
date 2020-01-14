@@ -9,6 +9,7 @@ services:
     environment:
       - ID=0
       - LOG=${LOG:-rd.log}
+      - HOME=/rd/node0/rd
     volumes:
       - ./build:/rd:Z
     networks:
@@ -23,6 +24,7 @@ services:
     environment:
       - ID=1
       - LOG=${LOG:-rd.log}
+      - HOME=/rd/node1/rd
     volumes:
       - ./build:/rd:Z
     networks:
@@ -35,6 +37,7 @@ services:
     environment:
       - ID=2
       - LOG=${LOG:-rd.log}
+      - HOME=/rd/node2/rd
     ports:
       - "26661-26662:26656-26657"
     volumes:
@@ -49,6 +52,7 @@ services:
     environment:
       - ID=3
       - LOG=${LOG:-rd.log}
+      - HOME=/rd/node3/rd
     ports:
       - "26663-26664:26656-26657"
     volumes:

@@ -57,7 +57,6 @@ Example:
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			config := ctx.Config
-
 			outputDir := viper.GetString(flagOutputDir)
 			chainID := viper.GetString(clientFlags.FlagChainID)
 			minGasPrices := viper.GetString(server.FlagMinGasPrices)
@@ -117,9 +116,12 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		genAccounts []authexported.GenesisAccount
 		genFiles    []string
 	)
-
+	configs := make([]*tmconfig.Config, 0)
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < numValidators; i++ {
+		cfg := *config
+		config := &cfg
+
 		nodeDirName := fmt.Sprintf("%s%d", nodeDirPrefix, i)
 		nodeDir := filepath.Join(outputDir, nodeDirName, nodeDaemonHome)
 		clientDir := filepath.Join(outputDir, nodeDirName, nodeCLIHome)
@@ -239,14 +241,15 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		// (REF: https://github.com/cosmos/cosmos-sdk/issues/4125).
 		rConfigFilePath := filepath.Join(nodeDir, "config/rd.toml")
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
+		configs = append(configs, config)
 	}
 
-	if err := initGenFiles(cdc, mbm, chainID, genAccounts, genFiles, numValidators); err != nil {
+	if err := initGenFiles(cdc, mbm, chainID, genAccounts, genFiles, numValidators, configs); err != nil {
 		return err
 	}
 
 	err := collectGenFiles(
-		cdc, config, chainID, monikers, nodeIDs, valPubKeys, numValidators,
+		cdc, configs, chainID, monikers, nodeIDs, valPubKeys, numValidators,
 		outputDir, nodeDirPrefix, nodeDaemonHome, genAccIterator,
 	)
 	if err != nil {
@@ -260,6 +263,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 func initGenFiles(
 	cdc *codec.Codec, mbm module.BasicManager, chainID string,
 	genAccounts []authexported.GenesisAccount, genFiles []string, numValidators int,
+	configs []*tmconfig.Config,
 ) error {
 
 	appGenState := mbm.DefaultGenesis()
@@ -284,6 +288,12 @@ func initGenFiles(
 
 	// generate empty genesis files for each validator and save
 	for i := 0; i < numValidators; i++ {
+		genDoc, err := fillGenDocConfig(configs[i], genDoc)
+		if err != nil {
+			return err
+		}
+
+		//log.Printf("THIS IS NEW SHIT: %#+v", genDoc)
 		if err := genDoc.SaveAs(genFiles[i]); err != nil {
 			return err
 		}
@@ -292,7 +302,7 @@ func initGenFiles(
 }
 
 func collectGenFiles(
-	cdc *codec.Codec, config *tmconfig.Config, chainID string,
+	cdc *codec.Codec, configs []*tmconfig.Config, chainID string,
 	monikers, nodeIDs []string, valPubKeys []crypto.PubKey,
 	numValidators int, outputDir, nodeDirPrefix, nodeDaemonHome string,
 	genAccIterator genutiltypes.GenesisAccountsIterator) error {
@@ -305,19 +315,19 @@ func collectGenFiles(
 		nodeDir := filepath.Join(outputDir, nodeDirName, nodeDaemonHome)
 		gentxsDir := filepath.Join(outputDir, "gentxs")
 		moniker := monikers[i]
-		config.Moniker = nodeDirName
+		configs[i].Moniker = nodeDirName
 
-		config.SetRoot(nodeDir)
+		configs[i].SetRoot(nodeDir)
 
 		nodeID, valPubKey := nodeIDs[i], valPubKeys[i]
 		initCfg := genutil.NewInitConfig(chainID, gentxsDir, moniker, nodeID, valPubKey)
 
-		genDoc, err := types.GenesisDocFromFile(config.GenesisFile())
+		genDoc, err := types.GenesisDocFromFile(configs[i].GenesisFile())
 		if err != nil {
 			return err
 		}
 
-		nodeAppState, err := genutil.GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genAccIterator)
+		nodeAppState, err := genutil.GenAppStateFromConfig(cdc, configs[i], initCfg, *genDoc, genAccIterator)
 		if err != nil {
 			return err
 		}
@@ -327,10 +337,10 @@ func collectGenFiles(
 			appState = nodeAppState
 		}
 
-		genFile := config.GenesisFile()
+		genFile := configs[i].GenesisFile()
 
 		// overwrite each validator's genesis file to have a canonical genesis time
-		if err := genutil.ExportGenesisFileWithTime(genFile, chainID, nil, appState, genTime); err != nil {
+		if err := genutil.ExportGenesisFileWithTime(genDoc, genFile, chainID, nil, appState, genTime); err != nil {
 			return err
 		}
 	}

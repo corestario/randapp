@@ -32,10 +32,10 @@ const appName = "randapp"
 
 var (
 	// default home directories for the application CLI
-	DefaultCLIHome = os.ExpandEnv("$HOME/.rcli")
+	DefaultCLIHome = os.ExpandEnv("$HOME/../rcli")
 
 	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
-	DefaultNodeHome = os.ExpandEnv("$HOME/.rd")
+	DefaultNodeHome = os.ExpandEnv("$HOME/")
 
 	// ModuleBasicManager is in charge of setting up basic module elemnets
 	ModuleBasics = module.NewBasicManager(
@@ -111,7 +111,6 @@ type randApp struct {
 
 // NewRandApp is a constructor function for randApp.
 func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
-
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
 

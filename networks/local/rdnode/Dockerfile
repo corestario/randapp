@@ -17,7 +17,7 @@ VOLUME [ /rd ]
 WORKDIR /rd
 EXPOSE 26656 26657
 ENTRYPOINT ["/usr/bin/wrapper.sh"]
-CMD ["start"]
+CMD ["start","--log_level","debug"]
 STOPSIGNAL SIGTERM
 
 COPY wrapper.sh /usr/bin/wrapper.sh
