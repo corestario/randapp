@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 ##
 ## Input parameters
@@ -30,5 +30,19 @@ if [ -d "$(dirname "${RDHOME}"/"${LOG}")" ]; then
 else
   "${BINARY}" --home "${RDHOME}" "$@"
 fi
+
+
+
+# Initialize configuration files and genesis file
+
+#/rd/rcli keys add validator${ID}
+#echo $(/rd/rcli keys show validator${ID} -a)
+
+#/rd/rd add-genesis-account $(/rd/rcli keys show validator${ID} -a) 1000nametoken,100000000stake
+
+#/rd/rcli config chain-id rchain
+#/rd/rcli config output json
+#/rd/rcli config indent true
+#/rd/rcli config trust-node true
 
 ``
