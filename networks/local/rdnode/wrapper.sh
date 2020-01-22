@@ -7,17 +7,6 @@ BINARY=/rd/${BINARY:-rd}
 ID=${ID:-0}
 LOG=${LOG:-rd.log}
 
-yes '12345678' | /rd/rd init --chain-id rchain validator
-yes '12345678' | /rd/rcli keys add validator
-valName=$(yes '12345678' | /rd/rcli keys show validator -a)
-echo $valName
-yes '12345678' | /rd/rd add-genesis-account $valName 1000nametoken,100000000stake
-
-/rd/rcli config chain-id rchain
-/rd/rcli config output json
-/rd/rcli config indent true
-/rd/rcli config trust-node true
-
 ##
 ## Assert linux binary
 ##
