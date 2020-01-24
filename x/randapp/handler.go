@@ -21,6 +21,6 @@ func NewHandler(keeper *Keeper) sdk.Handler {
 
 // Handle a message to set name
 func handleMsgSendDKGData(ctx sdk.Context, keeper *Keeper, msg msgs.MsgSendDKGData) (*sdk.Result, error) {
-	keeper.AddDKGData(ctx, msgs.RandDKGData{Data: msg.Data, Owner: msg.Owner})
+	keeper.AddDKGData(ctx, msgs.MsgSendDKGData{Data: msg.Data, Owner: msg.Owner})
 	return &sdk.Result{}, nil
 }

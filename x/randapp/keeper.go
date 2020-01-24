@@ -107,7 +107,7 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.RandDKGData) {
+func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
 	if data.Owner.Empty() {
 		return
 	}
@@ -127,7 +127,7 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.RandDKGData) {
 	}
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.RandDKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.MsgSendDKGData {
 	fmt.Printf("GETDKGDATA: %+v \t", dataType)
 
 	store, err := k.getStore(ctx, dataType)
@@ -136,11 +136,11 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.RandDK
 	}
 
 	var (
-		out      []*msgs.RandDKGData
+		out      []*msgs.MsgSendDKGData
 		iterator = sdk.KVStorePrefixIterator(store, nil)
 	)
 	for ; iterator.Valid(); iterator.Next() {
-		var data msgs.RandDKGData
+		var data msgs.MsgSendDKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
 		out = append(out, &data)
 	}
