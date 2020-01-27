@@ -105,7 +105,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	nodeCLIHome, startingIPAddress string, numValidators int) error {
 
 	if chainID == "" {
-		chainID = "chain-" + cmn.RandStr(6)
+		chainID = "rchain"
 	}
 
 	config.Consensus.CreateEmptyBlocks = false
@@ -306,7 +306,7 @@ func initGenFiles(
 		BLSMasterPubKey: blsShare.TestnetMasterPubKey,
 		BLSThreshold:    3,
 		BLSNumShares:    4,
-		DKGNumBlocks:    10,
+		DKGNumBlocks:    7,
 	}
 
 	// generate empty genesis files for each validator and save
