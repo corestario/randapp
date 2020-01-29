@@ -102,7 +102,7 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 		genDoc.BLSMasterPubKey = blsShare.DefaultBLSVerifierMasterPubKey
 		genDoc.BLSThreshold = 3
 		genDoc.BLSNumShares = 4
-		genDoc.DKGNumBlocks = 7
+		genDoc.DKGNumBlocks = 20
 		logger.Info("Generated geneAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsis file", "path", genDoc)
 
 		if err := genDoc.SaveAs(genFile); err != nil {
