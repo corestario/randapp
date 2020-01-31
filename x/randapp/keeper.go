@@ -127,7 +127,7 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
 	}
 }
 
-func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.MsgSendDKGData {
+func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType, roundID int) []*msgs.MsgSendDKGData {
 	fmt.Printf("GETDKGDATA: %+v \t", dataType)
 
 	store, err := k.getStore(ctx, dataType)
@@ -142,7 +142,9 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType) []*msgs.MsgSen
 	for ; iterator.Valid(); iterator.Next() {
 		var data msgs.MsgSendDKGData
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &data)
-		out = append(out, &data)
+		if data.Data.RoundID == roundID {
+			out = append(out, &data)
+		}
 	}
 
 	fmt.Println("DKGLEN = ", len(out))

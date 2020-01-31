@@ -78,7 +78,7 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 			return err
 		}
 
-		logger.Info("Generated node key", "path", blsKeyFile)
+		logger.Info("Generated BLS key", "path", blsKeyFile)
 	}
 
 	// genesis file
@@ -103,13 +103,11 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 		genDoc.BLSThreshold = 3
 		genDoc.BLSNumShares = 4
 		genDoc.DKGNumBlocks = 20
-		logger.Info("Generated geneAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsis file", "path", genDoc)
 
 		if err := genDoc.SaveAs(genFile); err != nil {
 			return err
 		}
 		logger.Info("Generated genesis file", "path", genFile)
-		logger.Info("Generated geneAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsis file", "path", genDoc)
 	}
 
 	return nil
