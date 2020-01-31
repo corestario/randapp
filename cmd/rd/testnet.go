@@ -335,6 +335,8 @@ func collectGenFiles(
 		config.Moniker = nodeDirName
 
 		config.SetRoot(nodeDir)
+		config.RandappCLIDirectory = filepath.Join(config.RootDir, "..", "rcli")
+		config.NodeEndpointForContext = "tcp://localhost:26657"
 
 		nodeID, valPubKey := nodeIDs[i], valPubKeys[i]
 		initCfg := genutil.NewInitConfig(chainID, gentxsDir, moniker, nodeID, valPubKey)
