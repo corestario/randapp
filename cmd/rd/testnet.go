@@ -264,8 +264,6 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 			return err
 		}
 
-		// TODO: Rename config file to server.toml as it's not particular to Gaia
-		// (REF: https://github.com/cosmos/cosmos-sdk/issues/4125).
 		rConfigFilePath := filepath.Join(nodeDir, "config/rd.toml")
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
 	}
@@ -324,7 +322,6 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 		logger.Info("Generated node key", "path", nodeKeyFile)
 	}
 
-	// todo what should we do if bls key not exsists
 	blsKeyFile := config.BLSKeyFile()
 	if cmn.FileExists(blsKeyFile) {
 		logger.Info("Found node key", "path", blsKeyFile)
@@ -362,12 +359,6 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 			PubKey:  key,
 			Power:   10,
 		}}
-
-		// This keypair allows for single-node execution, e.g. $ tendermint node.
-		genDoc.BLSMasterPubKey = blsShare.DefaultBLSVerifierMasterPubKey
-		genDoc.BLSThreshold = 3
-		genDoc.BLSNumShares = 4
-		genDoc.DKGNumBlocks = 20
 
 		if err := genDoc.SaveAs(genFile); err != nil {
 			return err
