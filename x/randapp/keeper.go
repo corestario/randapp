@@ -5,8 +5,8 @@ import (
 
 	types "github.com/corestario/dkglib/lib/alias"
 	msgs "github.com/corestario/dkglib/lib/msgs"
-	"github.com/corestario/randapp/common"
 	"github.com/corestario/randapp/x/randapp/config"
+	"github.com/corestario/randapp/x/randapp/metrics"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -33,7 +33,7 @@ type Keeper struct {
 
 	cdc     *codec.Codec // The wire codec for binary encoding/decoding.
 	config  *config.RAServerConfig
-	msgMetr *common.MsgMetrics
+	msgMetr *metrics.MsgMetrics
 }
 
 func NewKeeper(
@@ -51,7 +51,7 @@ func NewKeeper(
 
 	cdc *codec.Codec,
 	cfg *config.RAServerConfig,
-	msgMetr *common.MsgMetrics,
+	msgMetr *metrics.MsgMetrics,
 ) *Keeper {
 	return &Keeper{
 		coinKeeper:            coinKeeper,
@@ -117,6 +117,7 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
 		return
 	}
 
+	// TODO
 	var bas = data.Data.Addr
 	for i := 0; i < getMax(4, data.Data.Type); i++ {
 		key := append(makeKey(data.Data.RoundID, i), bas...)
@@ -128,8 +129,6 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType, roundID int) []*msgs.MsgSendDKGData {
-	fmt.Printf("GETDKGDATA: %+v \t", dataType)
-
 	store, err := k.getStore(ctx, dataType)
 	if err != nil {
 		return nil
@@ -146,8 +145,6 @@ func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType, roundID int) [
 			out = append(out, &data)
 		}
 	}
-
-	fmt.Println("DKGLEN = ", len(out))
 
 	return out
 }

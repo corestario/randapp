@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/corestario/randapp/common"
 	"github.com/corestario/randapp/x/randapp"
 	"github.com/corestario/randapp/x/randapp/config"
+	"github.com/corestario/randapp/x/randapp/metrics"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -220,7 +220,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.keyReconstructCommits,
 		app.cdc,
 		srvCfg,
-		common.NewPrometheusMsgMetrics(appName),
+		metrics.NewPrometheusMsgMetrics(appName),
 	)
 
 	app.mm = module.NewManager(

@@ -5,7 +5,7 @@ import (
 	"path"
 
 	app "github.com/corestario/randapp"
-	"github.com/corestario/randapp/util"
+	"github.com/corestario/randapp/x/randapp/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -18,10 +18,6 @@ import (
 	"github.com/spf13/viper"
 	amino "github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
-)
-
-const (
-	storeAcc = "acc"
 )
 
 func main() {

@@ -32,7 +32,6 @@ func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	if len(path) < 2 {
 		return nil, fmt.Errorf("invalid query, need 2 arguments, got %d", len(path))
 	}
-	fmt.Println("QUERYDKG:", path)
 
 	dataType, err := strconv.Atoi(path[0])
 	if err != nil {
@@ -49,7 +48,6 @@ func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		buf   = bytes.NewBuffer(nil)
 		enc   = gob.NewEncoder(buf)
 	)
-	fmt.Println("QUERYDKGDATA:", len(datas))
 	if err := enc.Encode(datas); err != nil {
 		return nil, fmt.Errorf("failed to encode response: %v", err)
 	}

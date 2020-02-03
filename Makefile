@@ -7,8 +7,8 @@ exit: exit $(val)
 all: lint install
 
 install: go.sum
-		go install -mod=readonly $(BUILD_FLAGS) ./cmd/rd
-		go install -mod=readonly $(BUILD_FLAGS) ./cmd/rcli
+		go install $(BUILD_FLAGS) ./cmd/rd
+		go install $(BUILD_FLAGS) ./cmd/rcli
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
