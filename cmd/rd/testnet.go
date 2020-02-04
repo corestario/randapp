@@ -268,7 +268,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
 	}
 
-	if err := initGenFiles(cdc, mbm, chainID, genAccounts, genFiles, numValidators); err != nil {
+	if err := initGenFiles(config, cdc, mbm, chainID, genAccounts, genFiles, numValidators); err != nil {
 		return err
 	}
 
@@ -370,7 +370,7 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 }
 
 func initGenFiles(
-	cdc *codec.Codec, mbm module.BasicManager, chainID string,
+	config *cfg.Config, cdc *codec.Codec, mbm module.BasicManager, chainID string,
 	genAccounts []authexported.GenesisAccount, genFiles []string, numValidators int,
 ) error {
 
@@ -393,9 +393,9 @@ func initGenFiles(
 		AppState:        appGenStateJSON,
 		Validators:      nil,
 		BLSMasterPubKey: blsShare.TestnetMasterPubKey,
-		BLSThreshold:    3,
-		BLSNumShares:    4,
-		DKGNumBlocks:    7,
+		BLSThreshold:    config.DKGOnChainConfig.BLSThreshold,
+		BLSNumShares:    config.DKGOnChainConfig.BLSNumShares,
+		DKGNumBlocks:    config.DKGOnChainConfig.DKGNumBlocks,
 	}
 
 	// generate empty genesis files for each validator and save
