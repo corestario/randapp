@@ -5,7 +5,7 @@ import (
 	"path"
 
 	app "github.com/corestario/randapp"
-	"github.com/corestario/randapp/util"
+	"github.com/corestario/randapp/x/randapp/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -19,12 +19,6 @@ import (
 	amino "github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
 )
-
-const (
-	storeAcc = "acc"
-)
-
-var defaultCLIHome = os.ExpandEnv("$HOME/.rcli")
 
 func main() {
 	cobra.EnableCommandSorting = false
@@ -52,7 +46,7 @@ func main() {
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		client.ConfigCmd(defaultCLIHome),
+		client.ConfigCmd(app.DefaultCLIHome),
 		queryCmd(cdc),
 		txCmd(cdc),
 		flags.LineBreak,
@@ -62,7 +56,7 @@ func main() {
 		flags.LineBreak,
 	)
 
-	executor := cli.PrepareMainCmd(rootCmd, "randapp", defaultCLIHome)
+	executor := cli.PrepareMainCmd(rootCmd, "randapp", app.DefaultCLIHome)
 	err := executor.Execute()
 	if err != nil {
 		panic(err)

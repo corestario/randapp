@@ -1,0 +1,71 @@
+version: '3'
+
+services:
+  rdnode0:
+    container_name: rdnode0
+    image: "tendermint/rdnode"
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-rd.log}
+      - HOME=/rd/node0/rd
+    volumes:
+      - ./build:/rd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.2
+
+  rdnode1:
+    container_name: rdnode1
+    image: "tendermint/rdnode"
+    ports:
+      - "26659-26660:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-rd.log}
+      - HOME=/rd/node1/rd
+    volumes:
+      - ./build:/rd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.3
+
+  rdnode2:
+    container_name: rdnode2
+    image: "tendermint/rdnode"
+    environment:
+      - ID=2
+      - LOG=${LOG:-rd.log}
+      - HOME=/rd/node2/rd
+    ports:
+      - "26661-26662:26656-26657"
+    volumes:
+      - ./build:/rd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.4
+
+  rdnode3:
+    container_name: rdnode3
+    image: "tendermint/rdnode"
+    environment:
+      - ID=3
+      - LOG=${LOG:-rd.log}
+      - HOME=/rd/node3/rd
+    ports:
+      - "26663-26664:26656-26657"
+    volumes:
+      - ./build:/rd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.5
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        -
+          subnet: 192.168.10.0/16

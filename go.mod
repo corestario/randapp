@@ -6,10 +6,12 @@ require (
 	github.com/corestario/dkglib v1.0.0
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190827131926-5aacf454e1b6
 	github.com/gorilla/mux v1.7.3
+	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.7.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.32.8
@@ -25,3 +27,5 @@ replace github.com/corestario/dkglib => ./../dkglib
 replace github.com/corestario/cosmos-utils/client => ./../cosmos-utils/client
 
 replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
+
+replace github.com/corestario/randapp => ./

@@ -28,19 +28,26 @@ func NewQuerier(keeper *Keeper) sdk.Querier {
 	}
 }
 
-func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper *Keeper) (res []byte, err error) {
-	fmt.Println("QUERYDKG:", path[0])
-	dataType, err1 := strconv.Atoi(path[0])
-	if err1 != nil {
-		return nil, fmt.Errorf("invalid data type: %s", path[0])
+func queryDKGData(ctx sdk.Context, path []string, req abci.RequestQuery, keeper *Keeper) ([]byte, error) {
+	if len(path) < 2 {
+		return nil, fmt.Errorf("invalid query, need 2 arguments, got %d", len(path))
+	}
+
+	dataType, err := strconv.Atoi(path[0])
+	if err != nil {
+		return nil, fmt.Errorf("argument 1 invalid data type: %s", path[0])
+	}
+
+	roundID, err := strconv.Atoi(path[1])
+	if err != nil {
+		return nil, fmt.Errorf("argument 2 invalid data type: %s", path[1])
 	}
 
 	var (
-		datas = keeper.GetDKGData(ctx, msgs.DKGDataType(dataType))
+		datas = keeper.GetDKGData(ctx, msgs.DKGDataType(dataType), roundID)
 		buf   = bytes.NewBuffer(nil)
 		enc   = gob.NewEncoder(buf)
 	)
-	fmt.Println("QUERYDKGDATA:", len(datas))
 	if err := enc.Encode(datas); err != nil {
 		return nil, fmt.Errorf("failed to encode response: %v", err)
 	}

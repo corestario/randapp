@@ -12,7 +12,10 @@ var configTemplate *template.Template
 
 type RAServerConfig struct {
 	ExampleMetric float64 `mapstructure:"example_metric"`
+	ChainName     string  `mapstructure:"chain_name"`
 }
+
+const DefaultChainName = "rchain"
 
 func init() {
 	var err error
@@ -24,6 +27,7 @@ func init() {
 func DefaultRAServerConfig() *RAServerConfig {
 	return &RAServerConfig{
 		ExampleMetric: 0.0,
+		ChainName:     DefaultChainName,
 	}
 }
 
@@ -48,11 +52,12 @@ func MustWriteFile(filePath string, contents []byte, mode os.FileMode) {
 	}
 }
 
-const defaultConfigTemplate = `# This is a marketplace server TOML config file.
+const defaultConfigTemplate = `# This is a randapp server TOML config file.
 # For more information, see https://github.com/toml-lang/toml
 
-##### common marketplace server config options #####
+##### common randapp server config options #####
 
 # Example
 #example_metric = "{{ .ExampleMetric }}"
+chain_name = "{{ .ChainName }}"
 `
