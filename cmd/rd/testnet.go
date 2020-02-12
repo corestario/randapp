@@ -50,6 +50,7 @@ var (
 	flagNodeDaemonHome    = "node-daemon-home"
 	flagNodeCLIHome       = "node-cli-home"
 	flagStartingIPAddress = "starting-ip-address"
+	flagDKGNumBlocks      = "dkg-num-blocks"
 )
 
 // get cmd to initialize all files for tendermint testnet and application
@@ -76,6 +77,9 @@ Example:
 			nodeCLIHome := viper.GetString(flagNodeCLIHome)
 			startingIPAddress := viper.GetString(flagStartingIPAddress)
 			numValidators := viper.GetInt(flagNumValidators)
+			dkgNumBlocks := viper.GetInt64(flagDKGNumBlocks)
+
+			config.DKGOnChainConfig.DKGNumBlocks = dkgNumBlocks
 
 			return InitTestnet(cmd, config, cdc, mbm, genAccIterator, outputDir, chainID,
 				minGasPrices, nodeDirPrefix, nodeDaemonHome, nodeCLIHome, startingIPAddress, numValidators)
@@ -99,6 +103,7 @@ Example:
 	cmd.Flags().String(
 		server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
 		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
+	cmd.Flags().Int64(flagDKGNumBlocks, 10, "Number of blocks after which DKG begins")
 	return cmd
 }
 
