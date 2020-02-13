@@ -117,9 +117,10 @@ func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
 		return
 	}
 
-	// TODO
+	validatorsCount := len(k.stakingKeeper.GetAllValidators(ctx))
+
 	var bas = data.Data.Addr
-	for i := 0; i < getMax(4, data.Data.Type); i++ {
+	for i := 0; i < getMax(validatorsCount, data.Data.Type); i++ {
 		key := append(makeKey(data.Data.RoundID, i), bas...)
 		if !store.Has(key) {
 			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
