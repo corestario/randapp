@@ -51,6 +51,7 @@ var (
 	flagNodeCLIHome       = "node-cli-home"
 	flagStartingIPAddress = "starting-ip-address"
 	flagDKGNumBlocks      = "dkg-num-blocks"
+	flagWithoutBLSKeys    = "without-bls-keys"
 )
 
 // get cmd to initialize all files for tendermint testnet and application
@@ -82,7 +83,7 @@ Example:
 			config.DKGOnChainConfig.DKGNumBlocks = dkgNumBlocks
 
 			return InitTestnet(cmd, config, cdc, mbm, genAccIterator, outputDir, chainID,
-				minGasPrices, nodeDirPrefix, nodeDaemonHome, nodeCLIHome, startingIPAddress, numValidators)
+				minGasPrices, nodeDirPrefix, nodeDaemonHome, nodeCLIHome, startingIPAddress, numValidators, viper.GetBool(flagWithoutBLSKeys))
 		},
 	}
 
@@ -104,6 +105,7 @@ Example:
 		server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
 		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
 	cmd.Flags().Int64(flagDKGNumBlocks, 10, "Number of blocks after which DKG begins")
+	cmd.Flags().Bool(flagWithoutBLSKeys, false, "Testnet without pregenerated BSL keys")
 	return cmd
 }
 
@@ -113,7 +115,7 @@ const nodeDirPerm = 0755
 func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	mbm module.BasicManager, genAccIterator genutiltypes.GenesisAccountsIterator,
 	outputDir, chainID, minGasPrices, nodeDirPrefix, nodeDaemonHome,
-	nodeCLIHome, startingIPAddress string, numValidators int) error {
+	nodeCLIHome, startingIPAddress string, numValidators int, withoutBLSKeys bool) error {
 
 	if chainID == "" {
 		chainID = "rchain"
@@ -157,7 +159,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		logger := log.NewTMLogger(os.Stdout)
 
 		config.NodeID = i
-		if err := initFilesWithConfig(config, logger); err != nil {
+		if err := initFilesWithConfig(config, logger, withoutBLSKeys); err != nil {
 			return fmt.Errorf("failed to initFilesWithConfig: %v", err)
 		}
 
@@ -289,7 +291,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	return nil
 }
 
-func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
+func initFilesWithConfig(config *cfg.Config, logger log.Logger, withoutGeneratedBLSKeys bool) error {
 	// private validator
 
 	privValKeyFile := config.PrivValidatorKeyFile()
@@ -330,7 +332,7 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger) error {
 	blsKeyFile := config.BLSKeyFile()
 	if cmn.FileExists(blsKeyFile) {
 		logger.Info("Found node key", "path", blsKeyFile)
-	} else {
+	} else if !withoutGeneratedBLSKeys {
 		f, err := os.Create(blsKeyFile)
 		if err != nil {
 			return err
