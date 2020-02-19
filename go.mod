@@ -17,16 +17,11 @@ require (
 	github.com/tendermint/tm-db v0.3.0
 )
 
-replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
-
-replace github.com/tendermint/tendermint => ./../tendermint
-
-replace github.com/corestario/dkglib => ./../dkglib
-
-replace github.com/corestario/cosmos-utils/client => ./../cosmos-utils/client
-
-replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
-
-replace github.com/corestario/randapp => ./
-
-replace go.dedis.ch/kyber/v3 => ./../kyber
+replace (
+	github.com/corestario/cosmos-utils/client => github.com/corestario/cosmos-utils/client v0.1.0
+	github.com/corestario/dkglib => github.com/corestario/dkglib v0.1.0
+	github.com/cosmos/cosmos-sdk => github.com/corestario/cosmos-sdk v0.1.0
+	github.com/tendermint/tendermint => github.com/corestario/tendermint v0.1.0
+	go.dedis.ch/kyber/v3 => github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05
+	golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
+)
