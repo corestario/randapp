@@ -1,6 +1,6 @@
 include Makefile.ledger
 
-
+VALIDATORS_COUNT ?= 4
 val = 1
 exit: exit $(val)
 
@@ -44,7 +44,7 @@ localnet-start: build-linux localnet-stop
 	docker-compose up -d
 
 localnet-start-without-bls-keys: build-linux localnet-stop
-	@if ! [ -f build/node0/rd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/rd:Z tendermint/rdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --without-bls-keys ;	fi
+	@if ! [ -f build/node0/rd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/rd:Z tendermint/rdnode testnet --v $(VALIDATORS_COUNT) -o . --starting-ip-address 192.168.10.2 --without-bls-keys ;	fi
 	docker-compose up -d
 
 localnet-start-with-dkg-in-5-blocks: build-linux localnet-stop
