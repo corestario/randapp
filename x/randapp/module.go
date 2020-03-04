@@ -100,8 +100,8 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
 	return
 }
 
-func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) abci.ModuleEndBlock {
+	return abci.ModuleEndBlock{}
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {

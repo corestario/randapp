@@ -28,6 +28,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+
+	reseeding "github.com/cosmos/modules/incubator/reseeding"
 )
 
 const appName = "randapp"
@@ -51,6 +53,7 @@ var (
 		distr.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+		reseeding.AppModule{},
 
 		randapp.AppModule{},
 	)
@@ -61,6 +64,7 @@ var (
 		distr.ModuleName:          nil,
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		reseeding.ModuleName:      nil,
 	}
 )
 
@@ -78,26 +82,28 @@ type randApp struct {
 	cdc *codec.Codec
 
 	// Keys to access the substores
-	keyMain     *sdk.KVStoreKey
-	keyAccount  *sdk.KVStoreKey
-	keySupply   *sdk.KVStoreKey
-	keyStaking  *sdk.KVStoreKey
-	tkeyStaking *sdk.TransientStoreKey
-	keyDistr    *sdk.KVStoreKey
-	tkeyDistr   *sdk.TransientStoreKey
-	keyNFT      *sdk.KVStoreKey
-	keyParams   *sdk.KVStoreKey
-	tkeyParams  *sdk.TransientStoreKey
-	keySlashing *sdk.KVStoreKey
+	keyMain      *sdk.KVStoreKey
+	keyAccount   *sdk.KVStoreKey
+	keySupply    *sdk.KVStoreKey
+	keyStaking   *sdk.KVStoreKey
+	tkeyStaking  *sdk.TransientStoreKey
+	keyDistr     *sdk.KVStoreKey
+	tkeyDistr    *sdk.TransientStoreKey
+	keyNFT       *sdk.KVStoreKey
+	keyParams    *sdk.KVStoreKey
+	tkeyParams   *sdk.TransientStoreKey
+	keySlashing  *sdk.KVStoreKey
+	keyReseeding *sdk.KVStoreKey
 
 	// Keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	supplyKeeper   supply.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	distrKeeper    distr.Keeper
-	paramsKeeper   params.Keeper
+	accountKeeper   auth.AccountKeeper
+	bankKeeper      bank.Keeper
+	supplyKeeper    supply.Keeper
+	stakingKeeper   staking.Keeper
+	slashingKeeper  slashing.Keeper
+	distrKeeper     distr.Keeper
+	paramsKeeper    params.Keeper
+	reseedingKeeper reseeding.Keeper
 
 	randKeeper *randapp.Keeper
 
@@ -126,16 +132,17 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		BaseApp: bApp,
 		cdc:     cdc,
 
-		keyMain:     sdk.NewKVStoreKey(bam.MainStoreKey),
-		keyAccount:  sdk.NewKVStoreKey(auth.StoreKey),
-		keySupply:   sdk.NewKVStoreKey(supply.StoreKey),
-		keyStaking:  sdk.NewKVStoreKey(staking.StoreKey),
-		tkeyStaking: sdk.NewTransientStoreKey(staking.TStoreKey),
-		keyDistr:    sdk.NewKVStoreKey(distr.StoreKey),
-		tkeyDistr:   sdk.NewTransientStoreKey("transient_" + distr.ModuleName),
-		keyParams:   sdk.NewKVStoreKey(params.StoreKey),
-		tkeyParams:  sdk.NewTransientStoreKey(params.TStoreKey),
-		keySlashing: sdk.NewKVStoreKey(slashing.StoreKey),
+		keyMain:      sdk.NewKVStoreKey(bam.MainStoreKey),
+		keyAccount:   sdk.NewKVStoreKey(auth.StoreKey),
+		keySupply:    sdk.NewKVStoreKey(supply.StoreKey),
+		keyStaking:   sdk.NewKVStoreKey(staking.StoreKey),
+		tkeyStaking:  sdk.NewTransientStoreKey(staking.TStoreKey),
+		keyDistr:     sdk.NewKVStoreKey(distr.StoreKey),
+		tkeyDistr:    sdk.NewTransientStoreKey("transient_" + distr.ModuleName),
+		keyParams:    sdk.NewKVStoreKey(params.StoreKey),
+		tkeyParams:   sdk.NewTransientStoreKey(params.TStoreKey),
+		keySlashing:  sdk.NewKVStoreKey(slashing.StoreKey),
+		keyReseeding: sdk.NewKVStoreKey(reseeding.StoreKey),
 
 		keyPubKeys:            sdk.NewKVStoreKey("pub_keys"),
 		keyDeals:              sdk.NewKVStoreKey("deals"),
@@ -211,6 +218,10 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	srvCfg := ReadSrvConfig()
 	fmt.Printf("Server Config: \n %+v \n", srvCfg)
 
+	app.reseedingKeeper = reseeding.NewKeeper(cdc, app.keyReseeding)
+
+	reseedingModule := reseeding.NewAppModule(app.reseedingKeeper, app.stakingKeeper)
+
 	app.randKeeper = randapp.NewKeeper(
 		app.bankKeeper,
 		app.stakingKeeper,
@@ -237,10 +248,11 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
 		randapp.NewAppModule(app.randKeeper, app.bankKeeper),
+		reseedingModule,
 	)
 
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
-	app.mm.SetOrderEndBlockers(staking.ModuleName)
+	app.mm.SetOrderEndBlockers(staking.ModuleName, reseeding.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	app.mm.SetOrderInitGenesis(
@@ -251,6 +263,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		slashing.ModuleName,
 
 		randapp.ModuleName,
+		reseeding.ModuleName,
 
 		genutil.ModuleName,
 	)
@@ -281,6 +294,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.keySlashing,
 		app.keyParams,
 		app.tkeyParams,
+		app.keyReseeding,
 
 		app.keyPubKeys,
 		app.keyDeals,
