@@ -5,7 +5,8 @@ go 1.12
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/corestario/dkglib v1.0.0
-	github.com/cosmos/cosmos-sdk v0.28.2-0.20190827131926-5aacf454e1b6
+	github.com/cosmos/cosmos-sdk v0.34.4-0.20191013030331-92ea174ea6e6
+	github.com/cosmos/modules/incubator/reseeding v1.0.0
 	github.com/gorilla/mux v1.7.3
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.7.0
@@ -30,3 +31,5 @@ replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
 replace github.com/corestario/randapp => ./
 
 replace go.dedis.ch/kyber/v3 => ./../kyber
+
+replace github.com/cosmos/modules/incubator/reseeding => ./../modules/incubator/reseeding
