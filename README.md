@@ -60,3 +60,14 @@ sudo rm -rf ./build && sudo make build-docker-rdnode && make build-linux && sudo
 ```shell script
 docker logs -f rdnode0
 ```
+
+### CLI commands
+
+Randapp has only one type of messages which could be sent from cli - seeds (implement in [Modules](https://github.com/corestario/modules))
+
+#### Send seed
+```shell script
+rcli reseeding send "SEED_BYTES"
+```
+
+Sending native MsgSendDKGData type from a cli or REST is not implemented due to unnecessary
