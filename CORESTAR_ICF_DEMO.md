@@ -175,7 +175,7 @@ To make a large-scale (30+ validators) testnet, you'll need a beefy machine (we 
 ```
 make localnet-stop
 rm -rf ./build
-VALIDATORS_COUNT=31
+VALIDATORS_COUNT=27
 export VALIDATORS_COUNT
 ./generate-docker-compose.sh
 make build-linux
