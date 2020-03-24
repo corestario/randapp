@@ -4,20 +4,47 @@
 
 In 2019 Corestar received an ICF grant for an implementation of random data generation inside Tendermint consensus. This document describes the scenarios that aim to demonstrate current progress and state of development.
 
+##### Setting up environment
+Get a clean Linux (we use Ubuntu 18.04) with Go, docker and docker-compose installed:
+
+```
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt update
+sudo apt install golang-go docker.io docker-compose
+```
+
+Create a fresh working directory (e.g. `~/arcade`) and cd into it. Clone all the necessary repos:
+
+```
+git clone https://github.com/corestario/randapp.git
+git clone https://github.com/corestario/tendermint.git
+git clone https://github.com/corestario/dkglib.git
+git clone https://github.com/corestario/cosmos-utils.git
+git clone https://github.com/corestario/cosmos-sdk.git
+git clone https://github.com/corestario/kyber.git
+git clone https://github.com/corestario/modules.git
+```
+
+Build base docker images for testnet nodes:
+
+```
+cd randapp
+make build-docker-rdnode
+```
+
+
 ##### Scenario No. 1: Run with pre-generated BLS keys
 
 Arcade's random data generation is based on threshold BLS signature recovery, where the recovered signature is put into block header. For a network of nodes to run, we can put pre-generated BLS keys into each node's data directory and run the testnet. This is currently done automatically, and the procedure is not different from vanilla local testnet initialization:
 
 ```
-cd randapp
 rm -rf ./build
-make build-docker-rdnode
 make build-linux
 make localnet-stop
 make localnet-start
 ```    
 
-Expected output of `docker logs -f $(docker ps -a -q)`:
+Expected output of `docker logs -f $(docker ps -a -q | head -1)`:
 
 ```
 node1    | I[2020-02-11|12:59:21.001] Received proposal                            module=consensus proposal="Proposal{2/0 (CE466AC15102556F98120CEB5B67D1D8F4ACE7E1ED4C71691B37BF5F2F93CC56:1:2FB758004ECE, -1) 00ED90556306 @ 2020-02-11T12:59:20.8977317Z}"
@@ -40,15 +67,13 @@ node1    | I[2020-02-11|12:59:21.119] Added to precommit                        
 Starting the testnet with pre-generated BLS keys is not a convenient way to go, but Arcade can not generate new blocks without BLS keys. In case when keys are not provided, an initial round of off-chain DKG is run between the nodes provided as persistent peers in configuration.  
 
 ```
-cd randapp
 rm -rf ./build
-make build-docker-rdnode
 make build-linux
 make localnet-stop
 make localnet-start-without-bls-keys
 ```
 
-Expected output of `docker logs -f $(docker ps -a -q)`:
+Expected output of `docker logs -f $(docker ps -a -q | head -1)`:
 
 ```
 I[2020-02-18|20:02:44.578] OffChainDKG: next verifier is nil, not changing verifier 0=1
@@ -78,15 +103,13 @@ DKG should happen every N blocks; so if we start with, say, DKGNumBlocks=10, aft
 
  
 ```
-cd randapp
 rm -rf ./build
-make build-docker-rdnode
 make build-linux
 make localnet-stop
 make localnet-start-with-dkg-in-10-blocks
 ```
 
-Expected output of `docker logs -f $(docker ps -a -q)`:
+Expected output of `docker logs -f $(docker ps -a -q | head -1)`:
 
 ```
 I[2020-02-18|20:20:20.781] starting ABCI with Tendermint                module=main
@@ -132,7 +155,6 @@ If Off-Chain DKG fails for some reason, Arcade switches to  On-Chain DKG. To get
 
 ```
 rm -rf ./build
-make build-docker-rdnode
 make build-linux
 make localnet-stop
 make localnet-start
@@ -144,3 +166,18 @@ docker restart <node_container_id>
 ```
 
 After several blocks On-Chain DKG should successfully finish.
+
+
+##### Scenario No. 5: Off-Chain DKG over a large-scale testnet
+
+To make a large-scale (30+ validators) testnet, you'll need a beefy machine (we are using 6CPU/16GB VPS on Digital Ocean). Only `localnet-start-without-bls-keys` option supports variable number of validators for now. Set `VALIDATORS_COUNT` environment variable to a desired number of validators.
+
+```
+make localnet-stop
+rm -rf ./build
+VALIDATORS_COUNT=27
+export VALIDATORS_COUNT
+./generate-docker-compose.sh
+make build-linux
+make localnet-start-without-bls-keys
+```

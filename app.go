@@ -218,7 +218,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	srvCfg := ReadSrvConfig()
 	fmt.Printf("Server Config: \n %+v \n", srvCfg)
 
-	app.reseedingKeeper = reseeding.NewKeeper(cdc, app.keyReseeding)
+	app.reseedingKeeper = reseeding.NewKeeper(app.cdc, app.keyReseeding)
 
 	reseedingModule := reseeding.NewAppModule(app.reseedingKeeper, app.stakingKeeper)
 

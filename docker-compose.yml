@@ -1,15 +1,15 @@
 version: '3'
-
 services:
+
   rdnode0:
     container_name: rdnode0
     image: "tendermint/rdnode"
-    ports:
-      - "26656-26657:26656-26657"
     environment:
       - ID=0
       - LOG=${LOG:-rd.log}
       - HOME=/rd/node0/rd
+    ports:
+      - "26656-26657:26656-26657"
     volumes:
       - ./build:/rd:Z
     networks:
@@ -19,12 +19,12 @@ services:
   rdnode1:
     container_name: rdnode1
     image: "tendermint/rdnode"
-    ports:
-      - "26659-26660:26656-26657"
     environment:
       - ID=1
       - LOG=${LOG:-rd.log}
       - HOME=/rd/node1/rd
+    ports:
+      - "26658-26659:26656-26657"
     volumes:
       - ./build:/rd:Z
     networks:
@@ -39,7 +39,7 @@ services:
       - LOG=${LOG:-rd.log}
       - HOME=/rd/node2/rd
     ports:
-      - "26661-26662:26656-26657"
+      - "26660-26661:26656-26657"
     volumes:
       - ./build:/rd:Z
     networks:
@@ -54,7 +54,7 @@ services:
       - LOG=${LOG:-rd.log}
       - HOME=/rd/node3/rd
     ports:
-      - "26663-26664:26656-26657"
+      - "26662-26663:26656-26657"
     volumes:
       - ./build:/rd:Z
     networks:
@@ -69,3 +69,4 @@ networks:
       config:
         -
           subnet: 192.168.10.0/16
+

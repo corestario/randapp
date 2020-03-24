@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"net"
 	"os"
 	"path"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/corestario/dkglib/lib/blsShare"
 	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"
-	clientInput "github.com/cosmos/cosmos-sdk/client/input"
 	clientKeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -106,6 +106,7 @@ Example:
 		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
 	cmd.Flags().Int64(flagDKGNumBlocks, 10, "Number of blocks after which DKG begins")
 	cmd.Flags().Bool(flagWithoutBLSKeys, false, "Testnet without pregenerated BSL keys")
+	cmd.Flags().String(clientFlags.FlagKeyringBackend, clientFlags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	return cmd
 }
 
@@ -134,7 +135,18 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		genAccounts []authexported.GenesisAccount
 		genFiles    []string
 	)
+
+	config.DKGOnChainConfig.BLSThreshold = ((numValidators / 3) * 2) + 1
+	config.DKGOnChainConfig.BLSNumShares = numValidators
+
 	genVals := make([]types.GenesisValidator, numValidators)
+
+	blsKeyring, err := blsShare.NewBLSKeyring(config.DKGOnChainConfig.BLSThreshold, config.DKGOnChainConfig.BLSNumShares)
+	if err != nil {
+		return fmt.Errorf("failed to run NewBLSKeyring: %w", err)
+	}
+
+	inBuf := bufio.NewReader(cmd.InOrStdin())
 
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < numValidators; i++ {
@@ -159,7 +171,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		logger := log.NewTMLogger(os.Stdout)
 
 		config.NodeID = i
-		if err := initFilesWithConfig(config, logger, withoutBLSKeys); err != nil {
+		if err := initFilesWithConfig(config, blsKeyring, logger, withoutBLSKeys); err != nil {
 			return fmt.Errorf("failed to initFilesWithConfig: %v", err)
 		}
 
@@ -192,23 +204,14 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		memo := fmt.Sprintf("%s@%s:26656", nodeIDs[i], ip)
 		genFiles = append(genFiles, config.GenesisFile())
 
-		buf := bufio.NewReader(cmd.InOrStdin())
-		prompt := fmt.Sprintf(
-			"Password for account '%s' (default %s):", nodeDirName, clientKeys.DefaultKeyPass,
+		keyPass := clientKeys.DefaultKeyPass
+
+		kb, err := keys.NewKeyring(
+			"cosmos",
+			viper.GetString(clientFlags.FlagKeyringBackend),
+			clientDir,
+			inBuf,
 		)
-
-		keyPass, err := clientInput.GetPassword(prompt, buf)
-		if err != nil && keyPass != "" {
-			// An error was returned that either failed to read the password from
-			// STDIN or the given password is not empty but failed to meet minimum
-			// length requirements.
-			return err
-		}
-
-		if keyPass == "" {
-			keyPass = clientKeys.DefaultKeyPass
-		}
-		kb, err := clientKeys.NewKeyBaseFromDir(clientDir)
 		if err != nil {
 			return err
 		}
@@ -275,11 +278,12 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
 	}
 
-	if err := initGenFiles(config, cdc, mbm, chainID, genAccounts, genFiles, numValidators); err != nil {
+	masterPubKey, _ := blsShare.DumpMasterPubKey(blsKeyring.MasterPubKey)
+	if err := initGenFiles(config, cdc, mbm, chainID, genAccounts, genFiles, numValidators, masterPubKey); err != nil {
 		return err
 	}
 
-	err := collectGenFiles(
+	err = collectGenFiles(
 		cdc, config, chainID, monikers, nodeIDs, valPubKeys, numValidators,
 		outputDir, nodeDirPrefix, nodeDaemonHome, genAccIterator,
 	)
@@ -291,7 +295,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	return nil
 }
 
-func initFilesWithConfig(config *cfg.Config, logger log.Logger, withoutGeneratedBLSKeys bool) error {
+func initFilesWithConfig(config *cfg.Config, blsKeyring *blsShare.BLSKeyring, logger log.Logger, withoutGeneratedBLSKeys bool) error {
 	// private validator
 
 	privValKeyFile := config.PrivValidatorKeyFile()
@@ -338,11 +342,18 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger, withoutGenerated
 			return err
 		}
 		defer f.Close()
-		share, ok := blsShare.TestnetShares[config.NodeID]
+
+		share, ok := blsKeyring.Shares[config.NodeID]
 		if !ok {
 			return fmt.Errorf("node id #%d is unexpected", config.NodeID)
 		}
-		err = json.NewEncoder(f).Encode(share)
+
+		shareJSON, err := blsShare.NewBLSShareJSON(share)
+		if err != nil {
+			return fmt.Errorf("failed to load LoadBLSShareJSON: %w", err)
+		}
+
+		err = json.NewEncoder(f).Encode(shareJSON)
 		if err != nil {
 			return err
 		}
@@ -379,6 +390,7 @@ func initFilesWithConfig(config *cfg.Config, logger log.Logger, withoutGenerated
 func initGenFiles(
 	config *cfg.Config, cdc *codec.Codec, mbm module.BasicManager, chainID string,
 	genAccounts []authexported.GenesisAccount, genFiles []string, numValidators int,
+	masterPubKey string,
 ) error {
 
 	appGenState := mbm.DefaultGenesis()
@@ -399,7 +411,7 @@ func initGenFiles(
 		ChainID:         chainID,
 		AppState:        appGenStateJSON,
 		Validators:      nil,
-		BLSMasterPubKey: blsShare.TestnetMasterPubKey,
+		BLSMasterPubKey: masterPubKey,
 		BLSThreshold:    config.DKGOnChainConfig.BLSThreshold,
 		BLSNumShares:    config.DKGOnChainConfig.BLSNumShares,
 		DKGNumBlocks:    config.DKGOnChainConfig.DKGNumBlocks,

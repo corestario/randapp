@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/modules/incubator/reseeding"
 )
 
 // MakeCodec generates the necessary codecs for Amino
@@ -18,5 +19,6 @@ func MakeCodec() *codec.Codec {
 	staking.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
+	reseeding.RegisterCodec(cdc)
 	return cdc
 }
