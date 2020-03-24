@@ -4,7 +4,7 @@
 
 reseed_interval=$1
 #use for reseeding module access
-sender=""
+sender_node_id=$2
 
 echo "reseed every $reseed_interval blocks"
 
@@ -55,11 +55,10 @@ do
     s2=$?
     if [ $s2 -eq 0 ]
     then
-      # use reseeding module here
-      # rcli reseeding send $sender $seed
+      docker exec -ti "rdnode$sender_node_id" bash -c "./rcli tx reseeding send $seed --keyring-backend=test --chain-id=rchain --from node$sender_node_id -y"
     fi
   fi
-  echo sleeeep
+  echo "Waiting for reseeding time..."
   sleep 2
 done
 
