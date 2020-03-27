@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"net"
 	"os"
 	"path"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/corestario/dkglib/lib/blsShare"
 	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"
-	clientInput "github.com/cosmos/cosmos-sdk/client/input"
 	clientKeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -106,6 +106,7 @@ Example:
 		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
 	cmd.Flags().Int64(flagDKGNumBlocks, 10, "Number of blocks after which DKG begins")
 	cmd.Flags().Bool(flagWithoutBLSKeys, false, "Testnet without pregenerated BSL keys")
+	cmd.Flags().String(clientFlags.FlagKeyringBackend, clientFlags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	return cmd
 }
 
@@ -144,6 +145,8 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	if err != nil {
 		return fmt.Errorf("failed to run NewBLSKeyring: %w", err)
 	}
+
+	inBuf := bufio.NewReader(cmd.InOrStdin())
 
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < numValidators; i++ {
@@ -201,23 +204,14 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		memo := fmt.Sprintf("%s@%s:26656", nodeIDs[i], ip)
 		genFiles = append(genFiles, config.GenesisFile())
 
-		buf := bufio.NewReader(cmd.InOrStdin())
-		prompt := fmt.Sprintf(
-			"Password for account '%s' (default %s):", nodeDirName, clientKeys.DefaultKeyPass,
+		keyPass := clientKeys.DefaultKeyPass
+
+		kb, err := keys.NewKeyring(
+			"cosmos",
+			viper.GetString(clientFlags.FlagKeyringBackend),
+			clientDir,
+			inBuf,
 		)
-
-		keyPass, err := clientInput.GetPassword(prompt, buf)
-		if err != nil && keyPass != "" {
-			// An error was returned that either failed to read the password from
-			// STDIN or the given password is not empty but failed to meet minimum
-			// length requirements.
-			return err
-		}
-
-		if keyPass == "" {
-			keyPass = clientKeys.DefaultKeyPass
-		}
-		kb, err := clientKeys.NewKeyBaseFromDir(clientDir)
 		if err != nil {
 			return err
 		}
@@ -283,7 +277,6 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 		rConfigFilePath := filepath.Join(nodeDir, "config/rd.toml")
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
 	}
-
 
 	masterPubKey, _ := blsShare.DumpMasterPubKey(blsKeyring.MasterPubKey)
 	if err := initGenFiles(config, cdc, mbm, chainID, genAccounts, genFiles, numValidators, masterPubKey); err != nil {
@@ -377,7 +370,6 @@ func initFilesWithConfig(config *cfg.Config, blsKeyring *blsShare.BLSKeyring, lo
 			ChainID:         fmt.Sprintf("test-chain-%v", cmn.RandStr(6)),
 			GenesisTime:     tmtime.Now(),
 			ConsensusParams: types.DefaultConsensusParams(),
-
 		}
 		key := pv.GetPubKey()
 		genDoc.Validators = []types.GenesisValidator{{

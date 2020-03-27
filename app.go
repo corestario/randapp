@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+
 	"github.com/corestario/randapp/x/randapp"
 	"github.com/corestario/randapp/x/randapp/config"
 	"github.com/corestario/randapp/x/randapp/metrics"
@@ -38,6 +40,8 @@ var (
 
 	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
 	DefaultNodeHome = os.ExpandEnv("$HOME/")
+
+	DefaultValidatorPower = int64(100)
 
 	// ModuleBasicManager is in charge of setting up basic module elemnets
 	ModuleBasics = module.NewBasicManager(
@@ -193,6 +197,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 		app.supplyKeeper,
 		auth.FeeCollectorName,
 		nil,
+		keeper.DefaultValidatorPower(DefaultValidatorPower),
 	)
 
 	app.slashingKeeper = slashing.NewKeeper(
@@ -213,7 +218,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	srvCfg := ReadSrvConfig()
 	fmt.Printf("Server Config: \n %+v \n", srvCfg)
 
-	app.reseedingKeeper = reseeding.NewKeeper(cdc, app.keyReseeding)
+	app.reseedingKeeper = reseeding.NewKeeper(app.cdc, app.keyReseeding)
 
 	reseedingModule := reseeding.NewAppModule(app.reseedingKeeper, app.stakingKeeper)
 
