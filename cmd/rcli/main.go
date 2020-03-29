@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	app "github.com/corestario/randapp"
+	app "github.com/corestario/randapp/x/randapp/app"
 	"github.com/corestario/randapp/x/randapp/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

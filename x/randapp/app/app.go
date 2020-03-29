@@ -77,7 +77,7 @@ func MakeCodec() *codec.Codec {
 	return cdc
 }
 
-type randApp struct {
+type RandApp struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
@@ -119,8 +119,12 @@ type randApp struct {
 	mm *module.Manager
 }
 
-// NewRandApp is a constructor function for randApp.
-func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
+func (r *RandApp) GetRandappKeeper() *randapp.Keeper {
+	return r.randKeeper
+}
+
+// NewRandApp is a constructor function for RandApp.
+func NewRandApp(logger log.Logger, db dbm.DB) *RandApp {
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
 
@@ -128,7 +132,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *randApp {
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc))
 
 	// Here you initialize your application with the store keys it requires
-	var app = &randApp{
+	var app = &RandApp{
 		BaseApp: bApp,
 		cdc:     cdc,
 
@@ -320,7 +324,7 @@ func NewDefaultGenesisState() GenesisState {
 	return ModuleBasics.DefaultGenesis()
 }
 
-func (app *randApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *RandApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
 	if err != nil {
@@ -329,17 +333,17 @@ func (app *randApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 
-func (app *randApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *RandApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
-func (app *randApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *RandApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
-func (app *randApp) LoadHeight(height int64) error {
+func (app *RandApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
 }
 
-func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (appState json.RawMessage,
+func (app *RandApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (appState json.RawMessage,
 	validators []tmtypes.GenesisValidator,
 	err error,
 ) {
@@ -359,7 +363,7 @@ func (app *randApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteLis
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *randApp) ModuleAccountAddrs() map[string]bool {
+func (app *RandApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[supply.NewModuleAddress(acc).String()] = true

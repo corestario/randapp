@@ -21,6 +21,10 @@ func NewHandler(keeper *Keeper) sdk.Handler {
 
 // Handle a message to set name
 func handleMsgSendDKGData(ctx sdk.Context, keeper *Keeper, msg msgs.MsgSendDKGData) (*sdk.Result, error) {
-	keeper.AddDKGData(ctx, msgs.MsgSendDKGData{Data: msg.Data, Owner: msg.Owner})
+	if err := keeper.AddDKGData(ctx, msgs.MsgSendDKGData{Data: msg.Data, Owner: msg.Owner}); err != nil {
+		ctx.EventManager().EmitEvent(sdk.NewEvent("EventAdDKGDataFailed",
+			sdk.NewAttribute("error", err.Error())))
+		return &sdk.Result{Log: err.Error()}, err
+	}
 	return &sdk.Result{}, nil
 }

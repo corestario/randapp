@@ -8,7 +8,7 @@ import (
 	l "log"
 	"net/http"
 
-	app "github.com/corestario/randapp"
+	app "github.com/corestario/randapp/x/randapp/app"
 	"github.com/corestario/randapp/x/randapp/util"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
