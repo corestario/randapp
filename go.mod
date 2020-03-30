@@ -3,7 +3,6 @@ module github.com/corestario/randapp
 go 1.12
 
 require (
-	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/corestario/dkglib v1.0.0
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20191013030331-92ea174ea6e6
 	github.com/cosmos/modules/incubator/reseeding v1.0.0
@@ -16,7 +15,6 @@ require (
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.32.8
 	github.com/tendermint/tm-db v0.3.0
-	github.com/corestario/cosmos-utils/client v0.0.0-20200319080016-b6dea902750d
 )
 
 replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
