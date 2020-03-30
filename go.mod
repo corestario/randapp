@@ -3,7 +3,7 @@ module github.com/corestario/randapp
 go 1.12
 
 require (
-	github.com/corestario/dkglib v1.0.3
+	github.com/corestario/dkglib v1.0.4
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20191013030331-92ea174ea6e6
 	github.com/cosmos/modules/incubator/reseeding v1.0.0
 	github.com/gorilla/mux v1.7.3
@@ -21,11 +21,7 @@ replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-2018082004570
 
 replace github.com/tendermint/tendermint => ./../tendermint
 
-replace github.com/corestario/dkglib => ./../dkglib
-
 replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
-
-replace github.com/corestario/randapp => ./
 
 replace go.dedis.ch/kyber/v3 => github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05
 
