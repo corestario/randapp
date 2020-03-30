@@ -16,6 +16,7 @@ require (
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.32.8
 	github.com/tendermint/tm-db v0.3.0
+	github.com/corestario/cosmos-utils/client master
 )
 
 replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
@@ -23,8 +24,6 @@ replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-2018082004570
 replace github.com/tendermint/tendermint => ./../tendermint
 
 replace github.com/corestario/dkglib => ./../dkglib
-
-replace github.com/corestario/cosmos-utils/client => ./../cosmos-utils/client
 
 replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
 
