@@ -55,6 +55,8 @@ github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05 h1:ICuDs+sbQzD
 github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05/go.mod h1:kXy7p3STAurkADD+/aZcsznZGKVHEqbtmdIzvPfrs1U=
 github.com/corestario/modules/incubator/reseeding v0.0.0-20200330233712-37ba45d9e0d6 h1:jF9uolMpHhhQizHmvcdrBuu25KMMS/ndsObvG0H15s0=
 github.com/corestario/modules/incubator/reseeding v0.0.0-20200330233712-37ba45d9e0d6/go.mod h1:+rfwf0o4VOv53xhzzkqcG89OgVDFYodHkUTr65pt4bI=
+github.com/corestario/tendermint v0.5.0 h1:wyVpEUfIuKXo/nMB2GlCspK+dUFpFvpLdmvZPgE+C3g=
+github.com/corestario/tendermint v0.5.0/go.mod h1:sx8+AUQRtqyoqf241ehiwC4EyHmhCrMaycvKQ8X8Z3k=
 github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8 h1:Iwin12wRQtyZhH6FV3ykFcdGNlYEzoeR0jN8Vn+JWsI=
 github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
 github.com/cosmos/ledger-cosmos-go v0.11.1 h1:9JIYsGnXP613pb2vPjFeMMjBI5lEDsEaF6oYorTy6J4=
