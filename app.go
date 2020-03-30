@@ -29,7 +29,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	reseeding "github.com/cosmos/modules/incubator/reseeding"
+	reseeding "github.com/corestario/modules/incubator/reseeding"
 )
 
 const appName = "randapp"
