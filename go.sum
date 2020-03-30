@@ -45,6 +45,8 @@ github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8Nz
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
+github.com/corestario/cosmos-sdk v0.3.0 h1:7vVDVQpDEA9hEGHebuNp3pbqaZoXJRa8U3YwEk+fEko=
+github.com/corestario/cosmos-sdk v0.3.0/go.mod h1:EUHg8dOVt6UWXAq71J21qR/JvMYkhD2bopUxg3aVtTM=
 github.com/corestario/cosmos-utils/client v0.1.0 h1:H1TJRJZ1OXryg/hmFcWqWApo7qUeewFf3RTNUa/q/N4=
 github.com/corestario/cosmos-utils/client v0.1.0/go.mod h1:CW43uwIrli9T2U7p40FLUDxvRKJbOkmjqBVCx4D5Njk=
 github.com/corestario/dkglib v1.0.4 h1:MCT0Abx2NEi3FLaotog0hbibaIzmhMJlI5lSBIG7Wiw=
