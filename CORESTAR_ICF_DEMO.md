@@ -29,7 +29,7 @@ Build base docker images for testnet nodes:
 
 ```
 cd randapp
-make build-docker-rdnode
+make build-docker-randappdnode
 ```
 
 
@@ -113,10 +113,10 @@ Expected output of `docker logs -f $(docker ps -a -q | head -1)`:
 
 ```
 I[2020-02-18|20:20:20.781] starting ABCI with Tendermint                module=main
-ERROR: server config file not found, error: Config File "server" Not Found in "[/rd/node1/rd/config]"
+ERROR: server config file not found, error: Config File "server" Not Found in "[/randappd/node1/randappd/config]"
 Server Config:
  &{ExampleMetric:0 ChainName:rchain}
-load bls from /rd/node1/rd/config/bls_key.json
+load bls from /randappd/node1/randappd/config/bls_key.json
 time="2020-02-18T20:20:26Z" level=info msg="New Round validators: &types.ValidatorSet{Validators:[]*types.Validator{(*types.Validator)(0xc000b0a9c0), (*types.Validator)(0xc000b0aa00), (*types.Validator)(0xc000b0aa40), (*types.Validator)(0xc000b0aa80)}, Proposer:(*types.Validator)(0xc000b0be80), totalVotingPower:0}"
 I[2020-02-18|20:20:26.472] Executed block                               module=state height=1 validTxs=0 invalidTxs=0
 I[2020-02-18|20:20:26.492] Committed state                              module=state height=1 txs=0 
@@ -202,7 +202,7 @@ for i in 0 1 2 3; do sh reseeder.sh 10 $i & ; done
 
 This will start 4 reseeders that will introduce a new seed each 10 blocks.
 
-Expected output of `docker logs -f rdnode0` (or any other node) is (after 10 blocks):
+Expected output of `docker logs -f randappdnode0` (or any other node) is (after 10 blocks):
 ```
 I[2020-03-24|11:23:17.156] Executed block                               module=state height=38 validTxs=0 invalidTxs=0
 I[2020-03-24|11:23:17.168] Committed state                              module=state height=38 txs=0 rnd=556372799565205776716300023192542548644756369850834765211599636154753686263693269992322493369007469039344676467369512584535455651866242231336179392275850 rndHash=27635AC4DF8F56BC643088EF3309CBF7EAAB5079645260DDB8961CF8406E5402 appHash=042601E2E2E27077F478EEBBB85050258492A40D22692A1F26BF2F52686685EA

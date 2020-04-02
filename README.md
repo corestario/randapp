@@ -53,12 +53,12 @@ Example:
 
 #### Run a local-testnet:
 ```shell script
-sudo rm -rf ./build && sudo make build-docker-rdnode && make build-linux && sudo make localnet-stop && sudo make localnet-start-without-bls-keys
+sudo rm -rf ./build && sudo make build-docker-randappdnode && make build-linux && sudo make localnet-stop && sudo make localnet-start-without-bls-keys
 ```
 
 #### How to view logs on a randapp node:
 ```shell script
-docker logs -f rdnode0
+docker logs -f randappdnode0
 ```
 
 ### CLI commands
@@ -67,7 +67,7 @@ Randapp has only one type of messages which could be sent from cli - seeds (impl
 
 #### Send seed
 ```shell script
-rcli reseeding send "SEED_BYTES"
+randappcli reseeding send "SEED_BYTES"
 ```
 
 Sending native MsgSendDKGData type from a cli or REST is not implemented due to unnecessary

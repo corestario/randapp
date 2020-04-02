@@ -7,8 +7,8 @@ exit: exit $(val)
 all: lint install
 
 install: go.sum
-		go install $(BUILD_FLAGS) ./cmd/rd
-		go install $(BUILD_FLAGS) ./cmd/rcli
+		go install $(BUILD_FLAGS) ./cmd/randappd
+		go install $(BUILD_FLAGS) ./cmd/randappcli
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
@@ -29,26 +29,26 @@ test:
 	go test ./...
 
 build: go.sum
-	go build -mod=readonly $(BUILD_FLAGS) -o build/rd ./cmd/rd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/rcli ./cmd/rcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/randappd ./cmd/randappd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/randappcli ./cmd/randappcli
 
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-build-docker-rdnode:
+build-docker-randappnode:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
 localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/rd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/rd:Z tendermint/rdnode testnet --v $(VALIDATORS_COUNT) -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ;	fi
+	@if ! [ -f build/node0/randappd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/randappd:Z tendermint/randappnode testnet --v $(VALIDATORS_COUNT) -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ;	fi
 	docker-compose up -d
 
 localnet-start-without-bls-keys: build-linux localnet-stop
-	@if ! [ -f build/node0/rd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/rd:Z tendermint/rdnode testnet --v $(VALIDATORS_COUNT) -o . --starting-ip-address 192.168.10.2 --without-bls-keys --keyring-backend=test ;	fi
+	@if ! [ -f build/node0/randappd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/randappd:Z tendermint/randappnode testnet --v $(VALIDATORS_COUNT) -o . --starting-ip-address 192.168.10.2 --without-bls-keys --keyring-backend=test ;	fi
 	docker-compose up -d
 
 localnet-start-with-dkg-in-5-blocks: build-linux localnet-stop
-	@if ! [ -f build/node0/rd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/rd:Z tendermint/rdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --dkg-num-blocks 5 --keyring-backend=test ;	fi
+	@if ! [ -f build/node0/randappd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/randappd:Z tendermint/randappnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --dkg-num-blocks 5 --keyring-backend=test ;	fi
 		docker-compose up -d
 
 # Stop testnet

@@ -11,8 +11,8 @@ COPY . $RAPATH
 
 WORKDIR $RAPATH
 
-RUN go install $RAPATH/cmd/rd
-RUN go install $RAPATH/cmd/rcli
+RUN go install $RAPATH/cmd/randappd
+RUN go install $RAPATH/cmd/randappcli
 
 WORKDIR $RAPATH/scripts
 

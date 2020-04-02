@@ -36,7 +36,7 @@ const appName = "randapp"
 
 var (
 	// default home directories for the application CLI
-	DefaultCLIHome = os.ExpandEnv("$HOME/../rcli")
+	DefaultCLIHome = os.ExpandEnv("$HOME/../randappcli")
 
 	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
 	DefaultNodeHome = os.ExpandEnv("$HOME/")
@@ -258,7 +258,7 @@ func NewRandApp(logger log.Logger, db dbm.DB) *RandApp {
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
 	app.mm.SetOrderEndBlockers(staking.ModuleName, reseeding.ModuleName)
 
-	// Sets the order of Genesis - Order matters, genutil is to always come last
+	// Sets the orandappder of Genesis - Orandappder matters, genutil is to always come last
 	app.mm.SetOrderInitGenesis(
 		distr.ModuleName,
 		staking.ModuleName,

@@ -33,7 +33,7 @@ func main() {
 	config.Seal()
 
 	rootCmd := &cobra.Command{
-		Use:   "rcli",
+		Use:   "randappcli",
 		Short: "randapp Client",
 	}
 
