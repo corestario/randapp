@@ -45,6 +45,18 @@ github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8Nz
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
+github.com/corestario/cosmos-sdk v0.3.0 h1:7vVDVQpDEA9hEGHebuNp3pbqaZoXJRa8U3YwEk+fEko=
+github.com/corestario/cosmos-sdk v0.3.0/go.mod h1:EUHg8dOVt6UWXAq71J21qR/JvMYkhD2bopUxg3aVtTM=
+github.com/corestario/cosmos-utils/client v0.1.0 h1:H1TJRJZ1OXryg/hmFcWqWApo7qUeewFf3RTNUa/q/N4=
+github.com/corestario/cosmos-utils/client v0.1.0/go.mod h1:CW43uwIrli9T2U7p40FLUDxvRKJbOkmjqBVCx4D5Njk=
+github.com/corestario/dkglib v1.0.4 h1:MCT0Abx2NEi3FLaotog0hbibaIzmhMJlI5lSBIG7Wiw=
+github.com/corestario/dkglib v1.0.4/go.mod h1:KYYI9WN4850zC3UMBJ2OX7z3fLvHIM4rwCBd+yQJqkc=
+github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05 h1:ICuDs+sbQzDem2pIAFyI+u6s0RiETzMc2IhnobgHkvE=
+github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05/go.mod h1:kXy7p3STAurkADD+/aZcsznZGKVHEqbtmdIzvPfrs1U=
+github.com/corestario/modules/incubator/reseeding v0.0.0-20200330233712-37ba45d9e0d6 h1:jF9uolMpHhhQizHmvcdrBuu25KMMS/ndsObvG0H15s0=
+github.com/corestario/modules/incubator/reseeding v0.0.0-20200330233712-37ba45d9e0d6/go.mod h1:+rfwf0o4VOv53xhzzkqcG89OgVDFYodHkUTr65pt4bI=
+github.com/corestario/tendermint v0.5.0 h1:wyVpEUfIuKXo/nMB2GlCspK+dUFpFvpLdmvZPgE+C3g=
+github.com/corestario/tendermint v0.5.0/go.mod h1:sx8+AUQRtqyoqf241ehiwC4EyHmhCrMaycvKQ8X8Z3k=
 github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8 h1:Iwin12wRQtyZhH6FV3ykFcdGNlYEzoeR0jN8Vn+JWsI=
 github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
 github.com/cosmos/ledger-cosmos-go v0.11.1 h1:9JIYsGnXP613pb2vPjFeMMjBI5lEDsEaF6oYorTy6J4=
@@ -123,7 +135,6 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c h1:6rhixN/i8ZofjG1Y75iExal34USq5p+wiN1tpie8IrU=
 github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c/go.mod h1:NMPJylDgVpX0MLRlPy15sqSwOFv/U1GZ2m21JhFfek0=
-github.com/hashicorp/go-version v1.0.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/hashicorp/golang-lru v0.5.3 h1:YPkqC67at8FYaadspW/6uE0COsBxS2656RLEr8Bppgk=
 github.com/hashicorp/golang-lru v0.5.3/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
@@ -169,8 +180,6 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0j
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
-github.com/mitchellh/gox v1.0.1/go.mod h1:ED6BioOGXMswlXa2zxfh/xdd5QhwYliBFn9V18Ap4z4=
-github.com/mitchellh/iochan v1.0.0/go.mod h1:JwYml1nuB7xOzsp52dPpHFffvOCDupsG0QubkSMEySY=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=

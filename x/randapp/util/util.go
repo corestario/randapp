@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/modules/incubator/reseeding"
+	"github.com/corestario/modules/incubator/reseeding"
 )
 
 // MakeCodec generates the necessary codecs for Amino

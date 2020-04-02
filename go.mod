@@ -3,10 +3,9 @@ module github.com/corestario/randapp
 go 1.12
 
 require (
-	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/corestario/dkglib v1.0.0
+	github.com/corestario/dkglib v1.0.4
+	github.com/corestario/modules/incubator/reseeding v0.0.0-20200330233712-37ba45d9e0d6
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20191013030331-92ea174ea6e6
-	github.com/cosmos/modules/incubator/reseeding v1.0.0
 	github.com/gorilla/mux v1.7.3
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.7.0
@@ -21,16 +20,8 @@ require (
 
 replace golang.org/x/crypto => github.com/tendermint/crypto v0.0.0-20180820045704-3764759f34a5
 
-replace github.com/tendermint/tendermint => ./../tendermint
+replace github.com/tendermint/tendermint => github.com/corestario/tendermint v0.5.0
 
-replace github.com/corestario/dkglib => ./../dkglib
+replace github.com/cosmos/cosmos-sdk => github.com/corestario/cosmos-sdk v0.3.0
 
-replace github.com/corestario/cosmos-utils/client => ./../cosmos-utils/client
-
-replace github.com/cosmos/cosmos-sdk => ./../cosmos-sdk
-
-replace github.com/corestario/randapp => ./
-
-replace go.dedis.ch/kyber/v3 => ./../kyber
-
-replace github.com/cosmos/modules/incubator/reseeding => ./../modules/incubator/reseeding
+replace go.dedis.ch/kyber/v3 => github.com/corestario/kyber/v3 v3.0.0-20200218082721-8ed10c357c05
