@@ -1,7 +1,7 @@
-# Makefile for the "rdnode" docker image.
+# Makefile for the "randappdnode" docker image.
 
 all:
-	docker build --tag tendermint/rdnode rdnode
+	docker build --tag tendermint/randappnode randappnode
 
 .PHONY: all
 

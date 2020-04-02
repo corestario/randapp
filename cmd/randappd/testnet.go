@@ -66,7 +66,7 @@ func testnetCmd(ctx *server.Context, cdc *codec.Codec,
 necessary files (private validator, genesis, config, etc.).
 Note, strict routability for addresses is turned off in the config file.
 Example:
-	rd testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
+	randappd testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			config := ctx.Config
@@ -93,9 +93,9 @@ Example:
 		"Directory to store initialization data for the testnet")
 	cmd.Flags().String(flagNodeDirPrefix, "node",
 		"Prefix the directory name for each node with (node results in node0, node1, ...)")
-	cmd.Flags().String(flagNodeDaemonHome, "rd",
+	cmd.Flags().String(flagNodeDaemonHome, "randappd",
 		"Home directory of the node's daemon configuration")
-	cmd.Flags().String(flagNodeCLIHome, "rcli",
+	cmd.Flags().String(flagNodeCLIHome, "randappcli",
 		"Home directory of the node's cli configuration")
 	cmd.Flags().String(flagStartingIPAddress, "192.168.0.1",
 		"Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
@@ -229,7 +229,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 			return err
 		}
 
-		// save private key seed words
+		// save private key seed worandappds
 		if err := writeFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, cliPrint); err != nil {
 			return err
 		}
@@ -274,7 +274,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 			return err
 		}
 
-		rConfigFilePath := filepath.Join(nodeDir, "config/rd.toml")
+		rConfigFilePath := filepath.Join(nodeDir, "config/randappd.toml")
 		srvconfig.WriteConfigFile(rConfigFilePath, rConfig)
 	}
 
@@ -443,7 +443,7 @@ func collectGenFiles(
 		config.Moniker = nodeDirName
 
 		config.SetRoot(nodeDir)
-		config.DKGOnChainConfig.RandappCLIDirectory = filepath.Join(config.RootDir, "..", "rcli")
+		config.DKGOnChainConfig.RandappCLIDirectory = filepath.Join(config.RootDir, "..", "randappcli")
 		config.DKGOnChainConfig.NodeEndpointForContext = "tcp://localhost:26657"
 		config.DKGOnChainConfig.Passphrase = "12345678"
 

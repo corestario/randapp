@@ -9,7 +9,7 @@ sender_node_id=$2
 echo "reseed every $reseed_interval blocks"
 
 function get_last_block_height() {
-  local hs=$(rcli q block --trust-node | jq '.block_meta.header.height | tonumber')
+  local hs=$(randappcli q block --trust-node | jq '.block_meta.header.height | tonumber')
   echo $hs
 }
 
@@ -55,7 +55,7 @@ do
     s2=$?
     if [ $s2 -eq 0 ]
     then
-      docker exec -ti "rdnode$sender_node_id" bash -c "./rcli tx reseeding send $seed --keyring-backend=test --chain-id=rchain --from node$sender_node_id -y"
+      docker exec -ti "randappdnode$sender_node_id" bash -c "./randappcli tx reseeding send $seed --keyring-backend=test --chain-id=rchain --from node$sender_node_id -y"
     fi
   fi
   echo "Waiting for reseeding time..."

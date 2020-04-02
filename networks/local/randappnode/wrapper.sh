@@ -3,15 +3,15 @@
 ##
 ## Input parameters
 ##
-BINARY=/rd/${BINARY:-rd}
+BINARY=/randappd/${BINARY:-randappd}
 ID=${ID:-0}
-LOG=${LOG:-rd.log}
+LOG=${LOG:-randappd.log}
 
 ##
 ## Assert linux binary
 ##
 if ! [ -f "${BINARY}" ]; then
-	echo "The binary $(basename "${BINARY}") cannot be found. Please add the binary to the shared folder. Please use the BINARY environment variable if the name of the binary is not 'rd' E.g.: -e BINARY=rd_my_test_version"
+	echo "The binary $(basename "${BINARY}") cannot be found. Please add the binary to the shared folder. Please use the BINARY environment variable if the name of the binary is not 'randappd' E.g.: -e BINARY=randappd_my_test_version"
 	exit 1
 fi
 BINARY_CHECK="$(file "$BINARY" | grep 'ELF 64-bit LSB executable, x86-64')"
@@ -23,7 +23,7 @@ fi
 ##
 ## Run binary with all parameters
 ##
-export RDHOME="/rd/node${ID}/rd"
+export RDHOME="/randappd/node${ID}/randappd"
 
 if [ -d "$(dirname "${RDHOME}"/"${LOG}")" ]; then
   "${BINARY}" --home "${RDHOME}" "$@" | tee "${RDHOME}/${LOG}"

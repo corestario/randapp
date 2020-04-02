@@ -1,6 +1,7 @@
 package randapp
 
 import (
+	"errors"
 	"fmt"
 
 	types "github.com/corestario/dkglib/lib/alias"
@@ -107,26 +108,28 @@ func getMax(validatorCount int, dataType types.DKGDataType) int {
 	return res * validatorCount
 }
 
-func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) {
+func (k Keeper) AddDKGData(ctx sdk.Context, data msgs.MsgSendDKGData) error {
 	if data.Owner.Empty() {
-		return
+		return errors.New("empty owner is not allowed")
 	}
 
 	store, err := k.getStore(ctx, data.Data.Type)
 	if err != nil {
-		return
+		return fmt.Errorf("no such store: %d", data.Data.Type)
 	}
 
 	validatorsCount := len(k.stakingKeeper.GetAllValidators(ctx))
 
-	var bas = data.Data.Addr
+	var senderAddress = data.Data.Addr
 	for i := 0; i < getMax(validatorsCount, data.Data.Type); i++ {
-		key := append(makeKey(data.Data.RoundID, i), bas...)
+		key := append(makeKey(data.Data.RoundID, i), senderAddress...)
 		if !store.Has(key) {
 			store.Set(key, k.cdc.MustMarshalBinaryBare(data))
-			return
+			return nil
 		}
 	}
+
+	return nil
 }
 
 func (k Keeper) GetDKGData(ctx sdk.Context, dataType DKGDataType, roundID int) []*msgs.MsgSendDKGData {

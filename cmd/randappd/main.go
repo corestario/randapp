@@ -8,7 +8,7 @@ import (
 	l "log"
 	"net/http"
 
-	app "github.com/corestario/randapp"
+	app "github.com/corestario/randapp/x/randapp/app"
 	"github.com/corestario/randapp/x/randapp/util"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -43,7 +43,7 @@ func main() {
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
-		Use:               "rd",
+		Use:               "randappd",
 		Short:             "randapp App Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
@@ -190,7 +190,7 @@ func AddGenesisAccountCmd(
 			}
 
 			// Add the new account to the set of genesis accounts and sanitize the
-			// accounts afterwards.
+			// accounts afterwarandappds.
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
 			authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
 

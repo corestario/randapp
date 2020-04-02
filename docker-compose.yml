@@ -1,62 +1,62 @@
 version: '3'
 services:
 
-  rdnode0:
-    container_name: rdnode0
-    image: "tendermint/rdnode"
+  randappdnode0:
+    container_name: randappdnode0
+    image: "tendermint/randappnode"
     environment:
       - ID=0
-      - LOG=${LOG:-rd.log}
-      - HOME=/rd/node0/rd
+      - LOG=${LOG:-randappd.log}
+      - HOME=/randappd/node0/randappd
     ports:
       - "26656-26657:26656-26657"
     volumes:
-      - ./build:/rd:Z
+      - ./build:/randappd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
 
-  rdnode1:
-    container_name: rdnode1
-    image: "tendermint/rdnode"
+  randappdnode1:
+    container_name: randappdnode1
+    image: "tendermint/randappnode"
     environment:
       - ID=1
-      - LOG=${LOG:-rd.log}
-      - HOME=/rd/node1/rd
+      - LOG=${LOG:-randappd.log}
+      - HOME=/randappd/node1/randappd
     ports:
       - "26658-26659:26656-26657"
     volumes:
-      - ./build:/rd:Z
+      - ./build:/randappd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.3
 
-  rdnode2:
-    container_name: rdnode2
-    image: "tendermint/rdnode"
+  randappdnode2:
+    container_name: randappdnode2
+    image: "tendermint/randappnode"
     environment:
       - ID=2
-      - LOG=${LOG:-rd.log}
-      - HOME=/rd/node2/rd
+      - LOG=${LOG:-randappd.log}
+      - HOME=/randappd/node2/randappd
     ports:
       - "26660-26661:26656-26657"
     volumes:
-      - ./build:/rd:Z
+      - ./build:/randappd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.4
 
-  rdnode3:
-    container_name: rdnode3
-    image: "tendermint/rdnode"
+  randappdnode3:
+    container_name: randappdnode3
+    image: "tendermint/randappnode"
     environment:
       - ID=3
-      - LOG=${LOG:-rd.log}
-      - HOME=/rd/node3/rd
+      - LOG=${LOG:-randappd.log}
+      - HOME=/randappd/node3/randappd
     ports:
       - "26662-26663:26656-26657"
     volumes:
-      - ./build:/rd:Z
+      - ./build:/randappd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.5
